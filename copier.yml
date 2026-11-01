@@ -1,0 +1,37 @@
+_min_copier_version: "9.0.0"
+_subdirectory: template
+_templates_suffix: .jinja
+
+project_name:
+  type: str
+  default: My Chromium Extension
+  help: Human-readable extension name
+
+project_slug:
+  type: str
+  default: "{{ project_name | lower | replace(' ', '-') }}"
+  help: npm package name (lowercase and hyphens)
+
+project_description:
+  type: str
+  default: Lightweight, responsive Chromium extension
+
+include_popup:
+  type: bool
+  default: true
+
+include_sidebar:
+  type: bool
+  default: true
+
+include_settings:
+  type: bool
+  default: true
+
+include_page_context_menu:
+  type: bool
+  default: true
+
+include_toolbar_context_menu:
+  type: bool
+  default: true
