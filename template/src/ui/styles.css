@@ -43,7 +43,7 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 label { display: block; font-weight: 600; margin-bottom: 8px; }
 select { background: var(--surface); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 9px; min-width: 180px; }
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-appearance="light"]) {
     --bg: #10191e;
     --surface: #1a282f;
     --text: #e5eff2;
@@ -54,3 +54,14 @@ select { background: var(--surface); color: var(--text); border: 1px solid var(-
   }
   .count { background: #173d36; color: #8bdfd2; }
 }
+
+:root[data-appearance="dark"] {
+  --bg: #10191e;
+  --surface: #1a282f;
+  --text: #e5eff2;
+  --muted: #a4b6bd;
+  --line: #304047;
+  --accent: #38bdb0;
+  --accent-ink: #102420;
+}
+:root[data-appearance="dark"] .count { background: #173d36; color: #8bdfd2; }

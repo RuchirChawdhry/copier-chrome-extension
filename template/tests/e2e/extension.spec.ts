@@ -27,6 +27,16 @@ test('the generated extension loads its configured surfaces', async () => {
       await page.goto('chrome-extension://' + extensionId + '/' + filename);
       await expect(page.locator('[data-ready="true"]')).toBeVisible();
     }
+
+    if (features.sidebar) {
+      await page.goto('chrome-extension://' + extensionId + '/sidebar.html');
+      await page.evaluate(() => chrome.runtime.sendMessage({
+        type: 'items.add', url: 'https://example.org/', title: 'Fixture item'
+      }));
+      await expect(page.getByRole('link', { name: 'Fixture item' })).toBeVisible();
+      await page.getByRole('button', { name: 'Remove Fixture item' }).click();
+      await expect(page.getByRole('link', { name: 'Fixture item' })).toHaveCount(0);
+    }
   } finally {
     await context.close();
   }
