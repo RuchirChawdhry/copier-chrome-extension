@@ -32,6 +32,8 @@ async function dispatch(command: Command): Promise<void> {
         await setItems(removeItem(previous, command.id));
       });
       return;
+    default:
+      throw new Error('Unsupported extension command');
   }
 }
 
