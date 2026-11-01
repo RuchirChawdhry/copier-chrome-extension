@@ -15,7 +15,8 @@ pnpm typecheck     # Svelte and TypeScript validation
 pnpm lint          # Biome
 pnpm test          # Vitest unit tests
 pnpm test:e2e      # Playwright using bundled Chromium
-pnpm bench         # Navigation-to-Svelte-mount measurements
+pnpm bench         # Chromium navigation-to-Svelte-mount benchmark
+pnpm verify:build # Check packaged manifest, assets, and surface flags
 pnpm package       # Cross-platform ZIP output
 ```
 
@@ -32,3 +33,35 @@ Context menus are registered on install and the toolbar context menu remains bro
 Only the broad permissions needed by the enabled features are generated. Add host permissions or content scripts explicitly when your extension needs them. The initial sample does not inject scripts into webpages.
 
 The PR-only GitHub Actions workflow is included in generated projects, not active in the Copier template repository. A compatible shared JavaScript workflow can replace it later.
+
+## Chrome and Edge compatibility benchmark
+
+Playwright's bundled Chromium supports automatic extension loading. Recent branded Chrome and Edge builds do not accept the same extension sideload flags, so use a **separate, manually loaded browser profile** and attach to it through the Chrome DevTools Protocol.
+
+On Windows PowerShell, for Edge (adjust the executable path if necessary):
+
+```powershell
+& "${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe" --remote-debugging-port=9222 --user-data-dir="$env:TEMP\edge-extension-bench"
+```
+
+Open `edge://extensions`, enable Developer mode, load the unpacked `dist/` directory, and copy the displayed extension ID. In another terminal:
+
+```sh
+node scripts/bench.mjs --cdp=http://127.0.0.1:9222 --extension-id=YOUR_EXTENSION_ID --output=reports/edge.json
+```
+
+Use an analogous fresh debugging profile for Chrome (`chrome://extensions`) on a **different port**, then:
+
+```sh
+node scripts/bench.mjs --cdp=http://127.0.0.1:9223 --extension-id=YOUR_CHROME_EXTENSION_ID --output=reports/chrome.json
+```
+
+To benchmark the bundled Playwright Chromium without connecting to a browser:
+
+```sh
+pnpm bench
+```
+
+The script measures first and repeat **navigation-to-Svelte-mounted UI** for popup/sidebar/settings pages, not physical toolbar-click latency or side-panel opening latency. Measurements from CDP-attached browsers are useful for comparative diagnostics, but do not replace manual checks of toolbar behavior, context menus, page transitions, and native panel rendering.
+
+Only attach to browser instances and debugging ports you control. Close the debugging browser after the measurements.
