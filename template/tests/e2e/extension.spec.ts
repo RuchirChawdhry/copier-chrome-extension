@@ -28,6 +28,14 @@ test('the generated extension loads its configured surfaces', async () => {
       await expect(page.locator('[data-ready="true"]')).toBeVisible();
     }
 
+    if (features.settings) {
+      await page.goto('chrome-extension://' + extensionId + '/options.html');
+      await page.getByLabel('Preferred appearance').selectOption('dark');
+      await page.getByRole('button', { name: 'Save settings' }).click();
+      await expect(page.getByRole('status')).toHaveText('Saved');
+      await expect.poll(() => page.evaluate(() => document.documentElement.dataset.appearance)).toBe('dark');
+    }
+
     if (features.sidebar) {
       await page.goto('chrome-extension://' + extensionId + '/sidebar.html');
       await page.evaluate(() => chrome.runtime.sendMessage({

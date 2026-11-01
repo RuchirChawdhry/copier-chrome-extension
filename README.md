@@ -18,3 +18,11 @@ pnpm build
 Load the generated `dist/` folder as an unpacked extension in Chromium or Edge. See the generated README for available tests, benchmarks, and commands.
 
 This repository's workflow template is nested under `template/` and will not run as a GitHub Action here. Generated projects include PR-only validation.
+
+## Verification
+
+The generated project provides `pnpm verify:build` to check Manifest V3, selected surfaces, and the existence of packaged scripts and styles. `pnpm test:e2e` exercises bundled Chromium through Playwright.
+
+Use `pnpm bench` for extension-page navigation-to-Svelte-mount measurements. For real installed Chrome and Edge builds, connect to their CDP debugging profiles with `node scripts/bench.mjs --cdp=... --extension-id=...` (details in the generated README). These are **not** physical toolbar-click benchmarks.
+
+This source repository keeps generated CI under `template/.github/workflows`, so it has no active GitHub Actions workflows.

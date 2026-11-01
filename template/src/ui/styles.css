@@ -65,3 +65,6 @@ select { background: var(--surface); color: var(--text); border: 1px solid var(-
   --accent-ink: #102420;
 }
 :root[data-appearance="dark"] .count { background: #173d36; color: #8bdfd2; }
+
+:root[data-appearance="light"] { color-scheme: light; }
+:root[data-appearance="dark"] { color-scheme: dark; }
