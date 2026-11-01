@@ -1,0 +1,34 @@
+# {{ project_name }}
+
+{{ project_description }}
+
+Generated with [copier-chrome-extension](https://github.com/RuchirChawdhry/copier-chrome-extension).
+
+## Development
+
+Requires Node.js 22.12+ and pnpm 10. Install dependencies with `pnpm install`.
+
+```sh
+pnpm dev           # Rebuild on changes; manually reload the unpacked extension
+pnpm build         # Build unpacked extension to dist/
+pnpm typecheck     # Svelte and TypeScript validation
+pnpm lint          # Biome
+pnpm test          # Vitest unit tests
+pnpm test:e2e      # Playwright using bundled Chromium
+pnpm bench         # Navigation-to-Svelte-mount measurements
+pnpm package       # Cross-platform ZIP output
+```
+
+Visit `chrome://extensions`, enable Developer mode, then choose **Load unpacked** and select the generated `dist/` directory. For Edge use `edge://extensions`.
+
+## Interfaces
+
+The template supports a toolbar popup, persistent sidebar, full-page settings, webpage right-click actions, and toolbar-icon right-click actions. They are controlled in `features.json`. Edit flags and rebuild to change which surfaces are packaged; edit the corresponding Svelte components to build your own product.
+
+The packaged popup, sidebar, and settings have isolated JS/CSS bundles, without additional lazy imports on their first render. The service worker is not needed to display the UI. The sample saves links to `chrome.storage.local` through a serialized worker command handler, and the sidebar subscribes to changes.
+
+Context menus are registered on install and the toolbar context menu remains browser-native. Opera's older sidebar API is not presumed compatible with MV3; test Opera separately before distributing.
+
+Only the broad permissions needed by the enabled features are generated. Add host permissions or content scripts explicitly when your extension needs them. The initial sample does not inject scripts into webpages.
+
+The PR-only GitHub Actions workflow is included in generated projects, not active in the Copier template repository. A compatible shared JavaScript workflow can replace it later.
