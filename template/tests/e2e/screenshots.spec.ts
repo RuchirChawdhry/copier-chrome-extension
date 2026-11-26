@@ -86,13 +86,23 @@ test('capture each enabled surface in light and dark appearance', async ({
       const path = resolve(directory, name);
       await page.screenshot({ path, animations: 'disabled' });
       await testInfo.attach(name, { path, contentType: 'image/png' });
-      if (surface.name === 'settings' && (features.optionalPermissions || features.keyboardShortcuts || features.toolbarBadge || features.contentScript)) {
+      if (
+        surface.name === 'settings' &&
+        (features.optionalPermissions ||
+          features.keyboardShortcuts ||
+          features.toolbarBadge ||
+          features.contentScript)
+      ) {
         await page.getByRole('tab', { name: 'Browser' }).click();
-        if (features.optionalPermissions) await expect(page.getByText('Access: Not granted')).toBeVisible();
+        if (features.optionalPermissions)
+          await expect(page.getByText('Access: Not granted')).toBeVisible();
         const browserName = `settings-browser-${theme}.png`;
         const browserPath = resolve(directory, browserName);
         await page.screenshot({ path: browserPath, animations: 'disabled' });
-        await testInfo.attach(browserName, { path: browserPath, contentType: 'image/png' });
+        await testInfo.attach(browserName, {
+          path: browserPath,
+          contentType: 'image/png',
+        });
       }
     }
   }

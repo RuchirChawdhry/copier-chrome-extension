@@ -34,8 +34,12 @@ test('sidebar shows loading, failure, retry and empty states', async ({
   await page.evaluate(() =>
     window.dispatchEvent(new Event('fixture-storage-failure')),
   );
-  await expect(page.getByRole('alert')).toContainText('Fixture storage failure');
+  await expect(page.getByRole('alert')).toContainText(
+    'Fixture storage failure',
+  );
   await page.getByRole('button', { name: 'Retry' }).click();
-  await expect(page.getByText('Nothing saved yet. Save a page to get started.')).toBeVisible();
+  await expect(
+    page.getByText('Nothing saved yet. Save a page to get started.'),
+  ).toBeVisible();
   await expect(page.getByRole('alert')).toHaveCount(0);
 });
