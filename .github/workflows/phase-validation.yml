@@ -3,7 +3,7 @@ on:
   push:
     branches: [phase-4-release-performance]
 permissions:
-  contents: read
+  contents: write
   actions: read
 jobs:
   release:
