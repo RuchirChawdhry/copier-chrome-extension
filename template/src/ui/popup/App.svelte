@@ -19,11 +19,15 @@
 
   onMount(() => {
     void refresh();
-    void chrome.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-      tab = tabs[0] ?? null;
-      windowId = tab?.windowId ?? null;
+    void chrome.tabs
+      .query({ active: true, currentWindow: true })
+      .then((tabs) => {
+        tab = tabs[0] ?? null;
+        windowId = tab?.windowId ?? null;
+      });
+    return subscribeToItems(() => {
+      void refresh();
     });
-    return subscribeToItems(() => { void refresh(); });
   });
 
   async function saveCurrent() {
@@ -57,23 +61,43 @@
   </div>
   <p class="muted">Quick actions, right where you need them.</p>
   <div class="actions">
-    <button type="button" class="primary" onclick={saveCurrent} disabled={!tab?.url || busy}>
+    <button
+      type="button"
+      class="primary"
+      onclick={saveCurrent}
+      disabled={!tab?.url || busy}
+    >
       {busy ? 'Saving…' : 'Save current page'}
     </button>
     {#if features.sidebar}
-      <button type="button" onclick={openSidebar} disabled={windowId === null}>Open sidebar</button>
+      <button type="button" onclick={openSidebar} disabled={windowId === null}>
+        Open sidebar
+      </button>
     {/if}
     {#if features.settings}
-      <button type="button" onclick={() => chrome.runtime.openOptionsPage()}>Settings</button>
+      <button type="button" onclick={() => chrome.runtime.openOptionsPage()}>
+        Settings
+      </button>
     {/if}
   </div>
-  {#if error}<p role="alert" class="error">{error}</p>{/if}
+  {#if error}
+    <p role="alert" class="error">{error}</p>
+  {/if}
   {#if items.length}
     <section class="card">
       <strong class="muted">Recently saved</strong>
       <ul class="list">
         {#each items.slice(0, 3) as item (item.id)}
-          <li><a class="truncate" href={item.url} target="_blank" rel="noreferrer" title={item.url}>{item.title}</a></li>
+          <li>
+            <a
+              class="truncate"
+              href={item.url}
+              target="_blank"
+              rel="noreferrer"
+              title={item.url}
+              >{item.title}</a
+            >
+          </li>
         {/each}
       </ul>
     </section>

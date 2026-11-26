@@ -1,0 +1,10 @@
+_commit: c2f2cc9
+_src_path: .
+include_page_context_menu: true
+include_popup: true
+include_settings: true
+include_sidebar: true
+include_toolbar_context_menu: true
+project_description: Lightweight, responsive Chromium extension
+project_name: My Chromium Extension
+project_slug: my-chromium-extension

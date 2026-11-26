@@ -1,0 +1,7 @@
+{
+  "popup": true,
+  "sidebar": true,
+  "settings": true,
+  "pageContextMenu": true,
+  "toolbarContextMenu": true
+}
