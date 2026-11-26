@@ -24,7 +24,7 @@ try {
       if (error.code === 'ENOENT') return [];
       throw error;
     });
-    assert.equal(screenshots.filter((file) => file.endsWith('.png')).length, 2 * values.slice(0, 3).filter(Boolean).length);
+    assert.equal(screenshots.filter((file) => file.endsWith('.png')).length, 2 * (values.slice(0, 3).filter(Boolean).length + Number(Boolean(values[2] && values.slice(5).some(Boolean)))));
   }
 } finally {
   await writeFile('features.json', original);

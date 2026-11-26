@@ -1,44 +1,12 @@
-name: Phase 3 validation
+
+name: Phase 3 final test preparation
 on:
   push:
     branches: [phase-3-browser-capabilities]
-
 permissions:
-  contents: read
-
+  contents: write
 jobs:
-  validate:
-    uses: RuchirChawdhry/ci-workflows/.github/workflows/node-ci.yml@a3a3790db090a416409edf543e781652b686c1fb
-    with:
-      project-path: .validation/generated
-      node-version: '22'
-      package-manager: pnpm
-      build-command: |
-        corepack pnpm build
-        corepack pnpm verify:build
-        corepack pnpm exec playwright install --with-deps chromium
-        corepack pnpm exec playwright test
-      artifact-path: .validation/generated/dist/
-      artifact-name: chromium-extension
-
-      diagnostics-path: |
-        .validation/generated/reports/screenshots/
-        .validation/generated/test-results/
-        .validation/generated/playwright-report/
-      diagnostics-name: chromium-diagnostics
-  lifecycle:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          fetch-depth: 0
-      - run: python -m pip install copier
-      - run: python -m unittest discover -s tests
-  regression:
-    strategy:
-      fail-fast: false
-      matrix:
-        check: [features, reload, enabled]
+  prepare:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -46,42 +14,27 @@ jobs:
         with:
           node-version: '22'
       - run: python -m pip install copier
-      - name: Generate disposable extension
-        run: |
-          args=()
-          if [[ "${{ matrix.check }}" == enabled ]]; then
-            args=(-d include_keyboard_shortcuts=true -d include_toolbar_badge=true -d include_optional_permissions=true -d include_content_script=true)
-          fi
-          copier copy --defaults --vcs-ref=HEAD "${args[@]}" . "$RUNNER_TEMP/extension"
-      - name: Install and check
+      - run: copier copy --defaults --vcs-ref=HEAD . "$RUNNER_TEMP/extension"
+      - name: Format and validate updated tests
         run: |
           cd "$RUNNER_TEMP/extension"
           corepack enable
           pnpm install --frozen-lockfile
+          pnpm exec biome check --write --max-diagnostics=100 .
           pnpm check
-          pnpm exec playwright install --with-deps chromium
-      - name: Verify feature matrix
-        if: matrix.check == 'features'
-        run: cd "$RUNNER_TEMP/extension" && node "$GITHUB_WORKSPACE/tests/validate_features.mjs"
-      - name: Verify automatic reload
-        if: matrix.check == 'reload'
-        run: cd "$RUNNER_TEMP/extension" && pnpm test:reload
-      - name: Validate fully enabled generated project
-        if: matrix.check == 'enabled'
-        run: |
-          cd "$RUNNER_TEMP/extension"
           pnpm build
-          pnpm verify:build
-          pnpm exec playwright test
-          test "$(find reports/screenshots -name '*.png' | wc -l)" -eq 6
-      - name: Upload enabled-capability diagnostics
-        if: ${{ always() && matrix.check == 'enabled' }}
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
-        with:
-          name: all-capabilities-diagnostics
-          path: |
-            ${{ runner.temp }}/extension/reports/screenshots/
-            ${{ runner.temp }}/extension/test-results/
-            ${{ runner.temp }}/extension/playwright-report/
-          if-no-files-found: ignore
-          retention-days: 7
+          pnpm exec playwright install --with-deps chromium
+          pnpm exec playwright test states.spec.ts
+      - name: Sync formatted template and fixture
+        run: |
+          cp -r "$RUNNER_TEMP/extension/src/." template/src/
+          cp -r "$RUNNER_TEMP/extension/tests/." template/tests/
+          cp -r template/src/. .validation/generated/src/
+          cp -r template/tests/. .validation/generated/tests/
+          cp .validation/next-workflow.yml .github/workflows/phase-validation.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add template .github/workflows/phase-validation.yml
+          git add -f .validation/generated/src .validation/generated/tests
+          git commit -m 'Normalize and validate state regression tests'
+          git push
