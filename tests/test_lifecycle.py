@@ -53,7 +53,19 @@ class LifecycleTests(unittest.TestCase):
                     dest = Path(tmp) / str(i)
                     args = [part for flag, value in zip(FLAGS, values) for part in ("-d", f"include_{flag}={str(value).lower()}")]
                     copy(ROOT, dest, *args)
-                    self.assertEqual(json.loads((dest / "features.json").read_text()), dict(zip(KEYS, values)))
+                    self.assertEqual(json.loads((dest / "features.json").read_text()), dict(zip(KEYS, values)) | dict.fromkeys(('keyboardShortcuts', 'toolbarBadge', 'optionalPermissions', 'contentScript'), False))
+
+    def test_new_capability_combinations(self):
+        flags = ("keyboard_shortcuts", "toolbar_badge", "optional_permissions", "content_script")
+        keys = ("keyboardShortcuts", "toolbarBadge", "optionalPermissions", "contentScript")
+        with tempfile.TemporaryDirectory() as tmp:
+            for i, values in enumerate(itertools.product((False, True), repeat=4)):
+                with self.subTest(values=values):
+                    dest = Path(tmp) / str(i)
+                    args = [part for flag, value in zip(flags, values) for part in ("-d", f"include_{flag}={str(value).lower()}")]
+                    copy(ROOT, dest, *args)
+                    rendered = json.loads((dest / "features.json").read_text())
+                    self.assertEqual({key: rendered[key] for key in keys}, dict(zip(keys, values)))
 
     def test_input_validation_and_escaping(self):
         with tempfile.TemporaryDirectory() as tmp:

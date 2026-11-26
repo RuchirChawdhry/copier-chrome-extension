@@ -48,3 +48,23 @@ include_page_context_menu:
 include_toolbar_context_menu:
   type: bool
   default: true
+
+include_keyboard_shortcuts:
+  type: bool
+  default: false
+  help: Include a shortcut to save the active page.
+
+include_toolbar_badge:
+  type: bool
+  default: false
+  help: Display the saved-link count on the toolbar icon.
+
+include_optional_permissions:
+  type: bool
+  default: false
+  help: Include a runtime notification-permission grant/revoke example (UI requires settings).
+
+include_content_script:
+  type: bool
+  default: false
+  help: Include an isolated content script restricted to https://example.com/*.

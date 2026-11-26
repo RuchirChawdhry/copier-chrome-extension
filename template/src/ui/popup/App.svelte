@@ -5,12 +5,23 @@
   import { watchStorage } from '../../core/reactive-storage';
   import { send } from '../../example/messages';
   import { exampleStorage } from '../../example/storage';
+  import Button from '../components/Button.svelte';
+  import Card from '../components/Card.svelte';
+  import StatePanel from '../components/StatePanel.svelte';
 
   const logger = createLogger('popup');
-  const items = watchStorage(
-    exampleStorage.defaultValue('example.links'),
-    (update, fail) => exampleStorage.observe('example.links', update, fail),
-  );
+  const items = $derived.by(() => {
+    // Recreate the readable subscription on explicit retry.
+    return makeItems(attempt);
+  });
+  function makeItems(_attempt: number) {
+    return watchStorage(
+      exampleStorage.defaultValue('example.links'),
+      (update, fail) => exampleStorage.observe('example.links', update, fail),
+    );
+  }
+  let attempt = $state(0);
+  let tabReady = $state(false);
   let tab = $state<chrome.tabs.Tab | null>(null);
   let windowId = $state<number | null>(null);
   let busy = $state(false);
@@ -18,17 +29,22 @@
 
   const title = chrome.runtime.getManifest().name;
 
-  onMount(() => {
+  function loadTab() {
+    tabReady = false;
+    error = '';
     void chrome.tabs
       .query({ active: true, currentWindow: true })
       .then((tabs) => {
         tab = tabs[0] ?? null;
         windowId = tab?.windowId ?? null;
+        tabReady = true;
       })
-      .catch(() => {
+      .catch((cause: unknown) => {
         logger.warn('Active tab lookup failed');
+        error = errorMessage(cause);
       });
-  });
+  }
+  onMount(loadTab);
 
   async function saveCurrent() {
     if (!tab?.url) return;
@@ -57,26 +73,25 @@
 <main data-ready="true">
   <div class="header">
     <h1>{title}</h1>
-    <span class="count">{$items.value.length} saved</span>
+    <span class="count">{$items.ready ? $items.value.length : '—'} saved</span>
   </div>
   <p class="muted">Quick actions, right where you need them.</p>
   <div class="actions">
-    <button
-      type="button"
-      class="primary"
+    <Button
+      primary
+      {busy}
       onclick={saveCurrent}
-      disabled={!tab?.url || busy}
+      disabled={!tabReady || !tab?.url || !/^https?:/.test(tab.url)}
     >
       {busy ? 'Saving…' : 'Save current page'}
-    </button>
+    </Button>
     {#if features.sidebar}
-      <button type="button" onclick={openSidebar} disabled={windowId === null}>
+      <Button onclick={openSidebar} disabled={windowId === null}>
         Open sidebar
-      </button>
+      </Button>
     {/if}
     {#if features.settings}
-      <button
-        type="button"
+      <Button
         onclick={() => {
           void chrome.runtime
             .openOptionsPage()
@@ -84,15 +99,31 @@
         }}
       >
         Settings
-      </button>
+      </Button>
     {/if}
   </div>
-  {#if error || $items.error}
-    <p role="alert" class="error">{error || $items.error}</p>
+  {#if error}
+    <StatePanel
+      kind="error"
+      message={error}
+      retry={!tabReady ? loadTab : undefined}
+    />
   {/if}
-  {#if $items.value.length}
-    <section class="card">
-      <strong class="muted">Recently saved</strong>
+  {#if !tabReady && !error}
+    <StatePanel kind="loading" message="Checking active tab…" />
+  {/if}
+  {#if $items.error}
+    <StatePanel
+      kind="error"
+      message={$items.error}
+      retry={() => {
+        attempt += 1;
+      }}
+    />
+  {:else if !$items.ready}
+    <StatePanel kind="loading" message="Loading saved links…" />
+  {:else if $items.value.length}
+    <Card title="Recently saved">
       <ul class="list">
         {#each $items.value.slice(0, 3) as item (item.id)}
           <li>
@@ -107,6 +138,8 @@
           </li>
         {/each}
       </ul>
-    </section>
+    </Card>
+  {:else}
+    <StatePanel kind="empty" message="No saved links yet." />
   {/if}
 </main>

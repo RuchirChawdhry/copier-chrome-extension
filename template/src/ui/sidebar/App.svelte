@@ -3,11 +3,29 @@
   import { watchStorage } from '../../core/reactive-storage';
   import { send } from '../../example/messages';
   import { exampleStorage } from '../../example/storage';
+  import Button from '../components/Button.svelte';
+  import SearchField from '../components/SearchField.svelte';
+  import StatePanel from '../components/StatePanel.svelte';
+  import Toggle from '../components/Toggle.svelte';
 
   const logger = createLogger('sidebar');
-  const items = watchStorage(
-    exampleStorage.defaultValue('example.links'),
-    (update, fail) => exampleStorage.observe('example.links', update, fail),
+  let attempt = $state(0);
+  let query = $state('');
+  let showUrls = $state(true);
+  let removing = $state<string | null>(null);
+  const items = $derived.by(() => makeItems(attempt));
+  function makeItems(_attempt: number) {
+    return watchStorage(
+      exampleStorage.defaultValue('example.links'),
+      (update, fail) => exampleStorage.observe('example.links', update, fail),
+    );
+  }
+  const filtered = $derived(
+    $items.value.filter((item) =>
+      (item.title + ' ' + item.url)
+        .toLowerCase()
+        .includes(query.toLowerCase().trim()),
+    ),
   );
   let error = $state('');
 
@@ -15,11 +33,14 @@
 
   async function remove(id: string) {
     error = '';
+    removing = id;
     try {
       await send('items.remove', { id });
     } catch (cause) {
       logger.warn('Remove failed');
       error = errorMessage(cause);
+    } finally {
+      removing = null;
     }
   }
 </script>
@@ -27,27 +48,38 @@
 <main data-ready="true">
   <div class="header">
     <h1>{title}</h1>
-    <span class="count">{$items.value.length}</span>
+    <span class="count">{$items.ready ? $items.value.length : '—'}</span>
   </div>
   <p class="muted">
     A lightweight sidebar workspace. Replace this sample list with your
     product's domain.
   </p>
-  {#if error || $items.error}
-    <p role="alert" class="error">{error || $items.error}</p>
+  {#if error}
+    <StatePanel kind="error" message={error} />
   {/if}
-  {#if !$items.ready && !$items.error}
-    <p class="muted">Loading saved items…</p>
+  {#if $items.error}
+    <StatePanel
+      kind="error"
+      message={$items.error}
+      retry={() => {
+        attempt += 1;
+      }}
+    />
+  {:else if !$items.ready}
+    <StatePanel kind="loading" message="Loading saved items…" />
   {:else if !$items.value.length}
-    <section class="card">
-      <p>
-        Nothing saved yet. Right-click a webpage or use the toolbar popup to add
-        something.
-      </p>
-    </section>
+    <StatePanel
+      kind="empty"
+      message="Nothing saved yet. Save a page to get started."
+    />
   {:else}
+    <SearchField bind:value={query} label="Search saved links" />
+    <Toggle bind:checked={showUrls} label="Show link addresses" />
+    {#if !filtered.length}
+      <StatePanel kind="empty" message="No matching links." />
+    {/if}
     <ul class="list">
-      {#each $items.value as item (item.id)}
+      {#each filtered as item (item.id)}
         <li>
           <div class="item-content">
             <a
@@ -58,15 +90,18 @@
               title={item.url}
               >{item.title}</a
             >
-            <span class="muted truncate">{item.url}</span>
+            {#if showUrls}
+              <span class="muted truncate">{item.url}</span>
+            {/if}
           </div>
-          <button
-            type="button"
+          <Button
+            busy={removing === item.id}
+            disabled={removing !== null}
             aria-label={'Remove ' + item.title}
             onclick={() => remove(item.id)}
           >
             Remove
-          </button>
+          </Button>
         </li>
       {/each}
     </ul>
