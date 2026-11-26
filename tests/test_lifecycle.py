@@ -76,11 +76,17 @@ class LifecycleTests(unittest.TestCase):
                 self.assertNotEqual(result.returncode, 0, data)
 
     def test_update_preserves_project_changes(self):
+        self.check_update(BASE)
+
+    def test_update_from_phase_one(self):
+        self.check_update('6558885ee7e796080b680ed47a4af5e345e219d1')
+
+    def check_update(self, base_ref):
         with tempfile.TemporaryDirectory() as tmp:
             template = Path(tmp) / "template"
             project = Path(tmp) / "project"
             run("git", "clone", "--no-hardlinks", str(ROOT), str(template))
-            git(template, "tag", "-f", "v0.1.0", BASE)
+            git(template, "tag", "-f", "v0.1.0", base_ref)
             git(template, "tag", "-f", "v0.2.0", "HEAD")
             copy(template, project, "-d", "project_name=Update Fixture", "-d", "include_sidebar=false", ref="v0.1.0")
             git(project, "init", "-b", "main")
@@ -89,7 +95,7 @@ class LifecycleTests(unittest.TestCase):
             git(project, "add", ".")
             git(project, "commit", "-m", "Generate old version")
             readme = project / "README.md"
-            readme.write_text(readme.read_text() + "\n## Local project notes\nKeep this change.\n")
+            readme.write_text(readme.read_text().replace("# Update Fixture", "# Update Fixture\n\nLocal project notes: Keep this change.", 1))
             (project / "local.txt").write_text("local content\n")
             git(project, "add", ".")
             git(project, "commit", "-m", "Customize project")
@@ -100,6 +106,9 @@ class LifecycleTests(unittest.TestCase):
             self.assertIn("test:reload", json.loads((project / "package.json").read_text())["scripts"])
             self.assertIn("v0.2.0", (project / ".copier-answers.yml").read_text())
             self.assertFalse(list(project.rglob("*.rej")))
+            self.assertFalse((project / "src/core/items.ts").exists())
+            self.assertTrue((project / "src/example/items.ts").exists())
+            self.assertIn("check", json.loads((project / "package.json").read_text())["scripts"])
 
 
 if __name__ == "__main__":
