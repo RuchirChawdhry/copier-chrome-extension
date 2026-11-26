@@ -5,24 +5,19 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { chromium } from '@playwright/test';
+import { snapshot } from './reload-plan.mjs';
 
-const features = JSON.parse(await readFile('features.json', 'utf8'));
-assert(features.popup, 'Reload test requires the popup feature');
+const config = JSON.parse(await readFile('extension.config.json', 'utf8'));
+assert(config.popup, 'Reload test requires popup');
 const source = 'src/ui/popup/App.svelte';
+const workerSource = 'src/background/index.ts';
 const original = await readFile(source, 'utf8');
+const originalWorker = await readFile(workerSource, 'utf8');
 const profile = await mkdtemp(join(tmpdir(), 'extension-reload-'));
-const server = spawn(process.execPath, ['scripts/dev.mjs'], {
-  env: process.env,
-  stdio: ['ignore', 'pipe', 'pipe'],
-});
+const server = spawn(process.execPath, ['scripts/dev.mjs'], { env: process.env, stdio: ['ignore', 'pipe', 'pipe'] });
 let output = '';
-for (const stream of [server.stdout, server.stderr])
-  stream.on('data', (data) => {
-    output += data;
-    process.stdout.write(data);
-  });
+for (const stream of [server.stdout, server.stderr]) stream.on('data', (data) => { output += data; process.stdout.write(data); });
 let context;
-
 async function waitFor(predicate, description, timeout = 60_000) {
   const deadline = Date.now() + timeout;
   while (Date.now() < deadline) {
@@ -32,79 +27,51 @@ async function waitFor(predicate, description, timeout = 60_000) {
   }
   throw new Error('Timed out: ' + description);
 }
-
 try {
-  await waitFor(
-    () => output.includes('Development build ready'),
-    'initial build',
-  );
+  await waitFor(() => output.includes('Development build ready'), 'initial build');
   const dist = resolve('dist');
-  context = await chromium.launchPersistentContext(profile, {
-    channel: 'chromium',
-    headless: true,
-    args: ['--disable-extensions-except=' + dist, '--load-extension=' + dist],
-  });
+  context = await chromium.launchPersistentContext(profile, { channel: 'chromium', headless: true, args: ['--disable-extensions-except=' + dist, '--load-extension=' + dist] });
   const manager = await context.newPage();
   await manager.goto('chrome://extensions/');
-  const loadButton = manager.getByRole('button', { name: 'Load unpacked' });
-  if (!(await loadButton.isVisible())) {
-    await manager.getByLabel('Developer mode').click();
-    await loadButton.waitFor({ state: 'visible' });
-  }
+  const load = manager.getByRole('button', { name: 'Load unpacked' });
+  if (!(await load.isVisible())) { await manager.getByLabel('Developer mode').click(); await load.waitFor({ state: 'visible' }); }
   await manager.close();
-  const worker =
-    context.serviceWorkers()[0] ??
-    (await context.waitForEvent('serviceworker'));
+  const worker = context.serviceWorkers()[0] ?? await context.waitForEvent('serviceworker');
   const id = new URL(worker.url()).host;
   const url = 'chrome-extension://' + id + '/popup.html';
-  await waitFor(
-    () => output.includes('Reload client connected'),
-    'worker connection',
-  );
-  const initial = await context.newPage();
-  await initial.goto(url);
-  await initial.locator('[data-ready="true"]').waitFor();
-  await initial.close();
-  for (const marker of ['Reload verification one', 'Reload verification two']) {
-    const current =
-      context.serviceWorkers()[0] ??
-      (await context.waitForEvent('serviceworker'));
-    const closed = new Promise((resolve) => current.once('close', resolve));
-    const connections = output.split('Reload client connected.').length;
-    await writeFile(
-      source,
-      original.replace('Quick actions, right where you need them.', marker),
-    );
-    await Promise.race([
-      closed,
-      delay(60_000).then(() => {
-        throw new Error('Worker did not reload');
-      }),
-    ]);
-    await waitFor(
-      () => output.split('Reload client connected.').length > connections,
-      'worker reconnection',
-    );
-    await waitFor(async () => {
-      const page = await context.newPage();
-      try {
-        await page.goto(url, { timeout: 5000 });
-        return await page.getByText(marker, { exact: true }).isVisible();
-      } catch {
-        return false;
-      } finally {
-        await page.close();
-      }
-    }, marker);
-    console.log('Verified automatic reload: ' + marker);
+  await waitFor(() => output.includes('Reload client connected'), 'worker connected');
+  const page = await context.newPage();
+  await page.goto(url);
+  await page.locator('[data-ready="true"]').waitFor();
+  const other = config.sidebar ? await context.newPage() : null;
+  if (other) {
+    await other.goto('chrome-extension://' + id + '/sidebar.html');
+    await other.locator('[data-ready="true"]').waitFor();
+    await other.evaluate(() => { window.__reloadSentinel = true; });
   }
+  let workerClosed = false;
+  worker.once('close', () => { workerClosed = true; });
+  for (const marker of ['Selective reload one', 'Selective reload two']) {
+    await writeFile(source, original.replace('</main>', '<p>' + marker + '</p></main>'));
+    await page.getByText(marker, { exact: true }).waitFor({ timeout: 60_000 });
+    assert(!workerClosed, 'UI edit must not reload worker');
+    if (other) assert(await other.evaluate(() => window.__reloadSentinel), 'Unchanged sidebar reloaded');
+    assert.deepEqual(await snapshot('dist'), await snapshot('.dev-dist'), 'Obsolete or stale assets remain');
+    console.log('Verified selective interface reload: ' + marker);
+  }
+  await writeFile(workerSource, originalWorker + '\nconsole.info("Full reload fixture");\n');
+  await waitFor(() => workerClosed, 'full worker reload');
+  await waitFor(() => output.split('Reload client connected.').length > 2, 'worker reconnected');
+  const reopened = await context.newPage();
+  await reopened.goto(url);
+  await reopened.getByText('Selective reload two', { exact: true }).waitFor();
+  console.log('Verified full reload after worker edit');
 } finally {
   await context?.close();
   server.kill();
-  await new Promise((resolve) => {
-    if (server.exitCode !== null) resolve();
-    else server.once('exit', resolve);
-  });
+  if (server.exitCode === null && server.signalCode === null)
+    await new Promise((resolve) => server.once('exit', resolve));
   await writeFile(source, original);
+  await writeFile(workerSource, originalWorker);
   await rm(profile, { recursive: true, force: true });
 }

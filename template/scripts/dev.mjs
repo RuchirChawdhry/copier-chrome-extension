@@ -2,6 +2,7 @@ import { spawn } from 'node:child_process';
 import { watch } from 'node:fs';
 import { cp, rm } from 'node:fs/promises';
 import { WebSocket, WebSocketServer } from 'ws';
+import { reloadPlan, removeStale, snapshot } from './reload-plan.mjs';
 
 const port = Number(process.env.EXTENSION_DEV_RELOAD_PORT ?? 17347);
 if (!Number.isInteger(port) || port < 1 || port > 65535)
@@ -16,7 +17,7 @@ server.on('connection', () => console.log('Reload client connected.'));
 const staging = '.dev-dist';
 let running = false;
 let queued = false;
-let initial = true;
+let previous;
 let timer;
 
 async function rebuild() {
@@ -40,13 +41,18 @@ async function rebuild() {
         code === 0 ? resolve() : reject(new Error('Build failed')),
       );
     });
-    if (initial) await rm('dist', { recursive: true, force: true });
+    const next = await snapshot(staging);
+    const plan = await reloadPlan(previous, next, staging);
+    if (!previous) await rm('dist', { recursive: true, force: true });
     await cp(staging, 'dist', { recursive: true, force: true });
-    initial = false;
-    for (const client of server.clients) {
-      if (client.readyState === WebSocket.OPEN) client.send('reload');
+    await removeStale(previous, next, 'dist');
+    previous = next;
+    if (plan.kind !== 'none') {
+      for (const client of server.clients) {
+        if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify(plan));
+      }
     }
-    console.log('Development build ready; connected extensions reloaded.');
+    console.log('Development build ready; reload plan: ' + JSON.stringify(plan));
   } catch (error) {
     console.error(error.message, '— last successful build remains available.');
   } finally {
@@ -68,7 +74,7 @@ const watchers = [
   watch('icons', { recursive: true }, schedule),
   watch('scripts', { recursive: true }, schedule),
   watch('.', (_event, name) => {
-    if (name && /^(features\.json|package\.json|.*\.html)$/.test(name))
+    if (name && /^(extension\.config\.json|package\.json|.*\.html)$/.test(name))
       schedule();
   }),
 ];
