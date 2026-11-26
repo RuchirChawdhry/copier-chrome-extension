@@ -1,5 +1,6 @@
 import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import tailwindcss from '@tailwindcss/vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { build as esbuild } from 'esbuild';
 import { build as viteBuild } from 'vite';
@@ -31,7 +32,7 @@ for (const [, html] of enabledSurfaces(features)) {
     root,
     configFile: false,
     base: './',
-    plugins: [svelte()],
+    plugins: [tailwindcss(), svelte()],
     define: { __DEV__: JSON.stringify(dev) },
     build: {
       outDir: dist,
