@@ -24,7 +24,7 @@ The generated project includes placeholder PNG icons (16, 32, 48, 128 px), a dev
 
 ## Verification
 
-The generated project provides `pnpm verify:build` to check Manifest V3, selected surfaces, and the existence of packaged scripts and styles. `pnpm test:e2e` exercises bundled Chromium through Playwright. `pnpm test:reload` verifies automatic reload in a disposable Developer Mode profile. Run `python -m unittest discover -s tests` with Copier installed to verify generation and updates.
+The generated project provides `pnpm verify:build` to check Manifest V3, selected surfaces, and the existence of packaged scripts and styles. `pnpm test:e2e` exercises bundled Chromium through Playwright. `pnpm test:reload` verifies two consecutive automatic reloads in a disposable Developer Mode profile. Run `python -m unittest discover -s tests` with Copier installed and a full Git clone to verify generation and updates. Use a disposable generated project for the browser feature matrix (`node /path/to/copier-chrome-extension/tests/validate_features.mjs`) and `pnpm test:reload`; these tests temporarily edit generated project files.
 
 Use `pnpm bench` for extension-page navigation-to-Svelte-mount measurements. For real installed Chrome and Edge builds, connect to their CDP debugging profiles with `node scripts/bench.mjs --cdp=... --extension-id=...` (details in the generated README). These are **not** physical toolbar-click benchmarks.
 
