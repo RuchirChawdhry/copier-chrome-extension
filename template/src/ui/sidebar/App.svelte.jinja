@@ -1,3 +1,4 @@
+{% if include_example %}{% raw %}
 <script lang="ts">
   import { createLogger, errorMessage } from '../../core/logger';
   import { watchStorage } from '../../core/reactive-storage';
@@ -107,3 +108,12 @@
     </ul>
   {/if}
 </main>
+{% endraw %}{% else %}{% raw %}
+<script lang="ts">
+  const title = chrome.runtime.getManifest().name;
+</script>
+
+<main data-ready="true" data-data-ready="true">
+  <h1>{title}</h1>
+</main>
+{% endraw %}{% endif %}
