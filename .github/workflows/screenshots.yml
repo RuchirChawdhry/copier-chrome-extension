@@ -53,8 +53,11 @@ jobs:
           corepack enable
           pnpm install --frozen-lockfile
           pnpm exec playwright install --with-deps chromium
-          pnpm screenshots
+          pnpm check
+          pnpm build
           pnpm verify:build
+          cp "$GITHUB_WORKSPACE/tests/ui-design.spec.ts" tests/e2e/ui-design.spec.ts
+          pnpm exec playwright test screenshots.spec.ts ui-design.spec.ts
       - name: Upload screenshots
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:

@@ -46,7 +46,7 @@ Edit `extension.config.json` to declare feature flags, manifest permission lists
 
 ## Screenshots
 
-Browse [`screenshots/`](screenshots/) for the clean starter and saved-link demonstration, captured with all optional capabilities enabled. Both profiles include light and dark images of the popup, sidebar, General settings and Browser settings. Run **Actions → Refresh screenshots → Run workflow** on `main` to regenerate the gallery. The workflow replaces the entire generated screenshot directory only after both captures pass validation; it does not append dated images. Captures show actual rendered extension pages in Playwright Chromium, not native browser toolbar, menu or permission-prompt chrome.
+Browse [`screenshots/`](screenshots/) for the clean starter and saved-link demonstration, captured with all optional capabilities enabled. The capture workflow also tests rendered theme colors, shared headers and control sizing before updating the gallery. Both profiles include light and dark images of the popup, sidebar, General settings and Browser settings. Run **Actions → Refresh screenshots → Run workflow** on `main` to regenerate the gallery. The workflow replaces the entire generated screenshot directory only after both captures pass validation; it does not append dated images. Captures show actual rendered extension pages in Playwright Chromium, not native browser toolbar, menu or permission-prompt chrome.
 
 ## UI foundation
 
