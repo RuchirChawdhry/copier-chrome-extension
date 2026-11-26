@@ -31,10 +31,13 @@ export function createRouter<C extends Contract>(
       message.channel !== RPC_CHANNEL ||
       typeof message.method !== 'string' ||
       !Object.hasOwn(routes, message.method)
-    ) return { ok: false, error: 'Unknown extension request' };
+    )
+      return { ok: false, error: 'Unknown extension request' };
 
     try {
-      const result = await routes[message.method as keyof C].invoke(message.params);
+      const result = await routes[message.method as keyof C].invoke(
+        message.params,
+      );
       return { ok: true, value: result };
     } catch (error) {
       logger.warn('RPC request rejected');

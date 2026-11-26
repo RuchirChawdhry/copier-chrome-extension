@@ -6,7 +6,8 @@ const logger = createLogger('worker:menus');
 
 function createMenu(properties: chrome.contextMenus.CreateProperties) {
   chrome.contextMenus.create(properties, () => {
-    if (chrome.runtime.lastError) logger.error('Context menu registration failed');
+    if (chrome.runtime.lastError)
+      logger.error('Context menu registration failed');
   });
 }
 
@@ -16,19 +17,40 @@ export function registerExampleMenus(features: Features): void {
     void (async () => {
       await chrome.contextMenus.removeAll();
       if (features.pageContextMenu) {
-        createMenu({ id: 'save-page', title: 'Save this page', contexts: ['page'] });
+        createMenu({
+          id: 'save-page',
+          title: 'Save this page',
+          contexts: ['page'],
+        });
         createMenu({ id: 'save-link', title: 'Save link', contexts: ['link'] });
       }
       if (features.toolbarContextMenu) {
-        createMenu({ id: 'save-active', title: 'Save current page', contexts: ['action'] });
-        if (features.sidebar) createMenu({ id: 'open-sidebar', title: 'Open sidebar', contexts: ['action'] });
-        if (features.settings) createMenu({ id: 'open-settings', title: 'Open settings', contexts: ['action'] });
+        createMenu({
+          id: 'save-active',
+          title: 'Save current page',
+          contexts: ['action'],
+        });
+        if (features.sidebar)
+          createMenu({
+            id: 'open-sidebar',
+            title: 'Open sidebar',
+            contexts: ['action'],
+          });
+        if (features.settings)
+          createMenu({
+            id: 'open-settings',
+            title: 'Open settings',
+            contexts: ['action'],
+          });
       }
     })().catch(() => logger.error('Context menu initialization failed'));
   });
   chrome.contextMenus.onClicked.addListener((info, tab) => {
     const save = (url?: string, title?: string) => {
-      if (url) void saveItem({ url, title }).catch(() => logger.warn('Unable to save link'));
+      if (url)
+        void saveItem({ url, title }).catch(() =>
+          logger.warn('Unable to save link'),
+        );
     };
     switch (info.menuItemId) {
       case 'save-page':
@@ -42,10 +64,14 @@ export function registerExampleMenus(features: Features): void {
         break;
       case 'open-sidebar':
         if (tab?.windowId !== undefined)
-          void chrome.sidePanel.open({ windowId: tab.windowId }).catch(() => logger.error('Unable to open sidebar'));
+          void chrome.sidePanel
+            .open({ windowId: tab.windowId })
+            .catch(() => logger.error('Unable to open sidebar'));
         break;
       case 'open-settings':
-        void chrome.runtime.openOptionsPage().catch(() => logger.error('Unable to open settings'));
+        void chrome.runtime
+          .openOptionsPage()
+          .catch(() => logger.error('Unable to open settings'));
         break;
     }
   });

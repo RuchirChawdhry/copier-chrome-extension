@@ -16,8 +16,12 @@ export function createStorage<S extends Record<string, unknown>>(
     return decode(key, record[key]);
   }
 
-  async function set<K extends keyof S & string>(key: K, value: S[K]): Promise<void> {
-    if (!schema[key].validate(value)) throw new Error(`Invalid storage value: ${key}`);
+  async function set<K extends keyof S & string>(
+    key: K,
+    value: S[K],
+  ): Promise<void> {
+    if (!schema[key].validate(value))
+      throw new Error(`Invalid storage value: ${key}`);
     await chrome.storage.local.set({ [key]: value });
   }
 
@@ -25,7 +29,10 @@ export function createStorage<S extends Record<string, unknown>>(
     key: K,
     onChange: (value: S[K]) => void,
   ): () => void {
-    const listener = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {
+    const listener = (
+      changes: Record<string, chrome.storage.StorageChange>,
+      area: string,
+    ) => {
       if (area === 'local' && Object.hasOwn(changes, key))
         onChange(decode(key, changes[key].newValue));
     };
@@ -46,11 +53,24 @@ export function createStorage<S extends Record<string, unknown>>(
       onChange(value);
     });
     void get(key).then(
-      (value) => { if (active && !changed) onChange(value); },
-      (error: unknown) => { if (active && !changed) onError(error); },
+      (value) => {
+        if (active && !changed) onChange(value);
+      },
+      (error: unknown) => {
+        if (active && !changed) onError(error);
+      },
     );
-    return () => { active = false; unsubscribe(); };
+    return () => {
+      active = false;
+      unsubscribe();
+    };
   }
 
-  return { get, set, subscribe, observe, defaultValue: <K extends keyof S & string>(key: K) => schema[key].default() };
+  return {
+    get,
+    set,
+    subscribe,
+    observe,
+    defaultValue: <K extends keyof S & string>(key: K) => schema[key].default(),
+  };
 }

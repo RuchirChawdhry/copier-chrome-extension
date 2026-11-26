@@ -1,26 +1,49 @@
-import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  expectTypeOf,
+  it,
+  vi,
+} from 'vitest';
 import { createStorage } from '../../src/core/storage';
 
 const storage = createStorage<{ count: number }>({
-  count: { default: () => 0, validate: (value): value is number => typeof value === 'number' },
+  count: {
+    default: () => 0,
+    validate: (value): value is number => typeof value === 'number',
+  },
 });
-type Listener = (changes: Record<string, chrome.storage.StorageChange>, area: string) => void;
+type Listener = (
+  changes: Record<string, chrome.storage.StorageChange>,
+  area: string,
+) => void;
 const listeners = new Set<Listener>();
 const get = vi.fn();
 const set = vi.fn();
 function emit(value: unknown, area = 'local') {
-  for (const listener of listeners) listener({ count: { newValue: value } }, area);
+  for (const listener of listeners)
+    listener({ count: { newValue: value } }, area);
 }
 
 beforeEach(() => {
   get.mockReset().mockResolvedValue({});
   set.mockReset().mockResolvedValue(undefined);
-  vi.stubGlobal('chrome', { storage: {
-    local: { get, set },
-    onChanged: { addListener: (listener: Listener) => listeners.add(listener), removeListener: (listener: Listener) => listeners.delete(listener) },
-  } });
+  vi.stubGlobal('chrome', {
+    storage: {
+      local: { get, set },
+      onChanged: {
+        addListener: (listener: Listener) => listeners.add(listener),
+        removeListener: (listener: Listener) => listeners.delete(listener),
+      },
+    },
+  });
 });
-afterEach(() => { listeners.clear(); vi.unstubAllGlobals(); });
+afterEach(() => {
+  listeners.clear();
+  vi.unstubAllGlobals();
+});
 
 describe('typed storage', () => {
   it('uses defaults for missing or invalid data and validates writes', async () => {
@@ -47,7 +70,11 @@ describe('typed storage', () => {
 
   it('never overwrites a newer change with a stale initial read', async () => {
     let finish!: (value: { count: number }) => void;
-    get.mockReturnValue(new Promise((resolve) => { finish = resolve; }));
+    get.mockReturnValue(
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+    );
     const update = vi.fn();
     const stop = storage.observe('count', update, vi.fn());
     emit(9);

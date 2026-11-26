@@ -15,10 +15,21 @@ describe('context-aware logger', () => {
       production.error('failure');
       expect(debug).not.toHaveBeenCalled();
       expect(info).not.toHaveBeenCalled();
-      expect(warn).toHaveBeenCalledWith(expect.stringContaining('[popup] WARN'), 'warning');
-      expect(error).toHaveBeenCalledWith(expect.stringContaining('[popup] ERROR'), 'failure');
+      expect(warn).toHaveBeenCalledWith(
+        expect.stringContaining('[popup] WARN'),
+        'warning',
+      );
+      expect(error).toHaveBeenCalledWith(
+        expect.stringContaining('[popup] ERROR'),
+        'failure',
+      );
       createLogger('worker', true).debug('started');
-      expect(debug).toHaveBeenCalledWith(expect.stringContaining('[worker] DEBUG'), 'started');
-    } finally { vi.restoreAllMocks(); }
+      expect(debug).toHaveBeenCalledWith(
+        expect.stringContaining('[worker] DEBUG'),
+        'started',
+      );
+    } finally {
+      vi.restoreAllMocks();
+    }
   });
 });

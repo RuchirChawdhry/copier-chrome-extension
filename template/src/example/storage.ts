@@ -3,9 +3,15 @@ import { createStorage } from '../core/storage';
 import type { SavedItem } from './items';
 
 function isSavedItem(value: unknown): value is SavedItem {
-  if (!isRecord(value) || typeof value.id !== 'string' || typeof value.url !== 'string' ||
-      typeof value.title !== 'string' || typeof value.createdAt !== 'number' ||
-      !Number.isFinite(value.createdAt)) return false;
+  if (
+    !isRecord(value) ||
+    typeof value.id !== 'string' ||
+    typeof value.url !== 'string' ||
+    typeof value.title !== 'string' ||
+    typeof value.createdAt !== 'number' ||
+    !Number.isFinite(value.createdAt)
+  )
+    return false;
   try {
     return ['http:', 'https:'].includes(new URL(value.url).protocol);
   } catch {
@@ -16,6 +22,7 @@ function isSavedItem(value: unknown): value is SavedItem {
 export const exampleStorage = createStorage<{ savedItems: SavedItem[] }>({
   savedItems: {
     default: () => [],
-    validate: (value): value is SavedItem[] => Array.isArray(value) && value.every(isSavedItem),
+    validate: (value): value is SavedItem[] =>
+      Array.isArray(value) && value.every(isSavedItem),
   },
 });

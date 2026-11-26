@@ -5,7 +5,10 @@
   import { exampleStorage } from '../../example/storage';
 
   const logger = createLogger('sidebar');
-  const items = watchStorage(exampleStorage.defaultValue('savedItems'), (update, fail) => exampleStorage.observe('savedItems', update, fail));
+  const items = watchStorage(
+    exampleStorage.defaultValue('savedItems'),
+    (update, fail) => exampleStorage.observe('savedItems', update, fail),
+  );
   let error = $state('');
 
   const title = chrome.runtime.getManifest().name;

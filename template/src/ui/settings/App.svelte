@@ -11,13 +11,19 @@
   const logger = createLogger('settings');
   const title = chrome.runtime.getManifest().name;
 
-  onMount(() => preferences.observe('appearance', (value) => {
-    if (!dirty) appearance = value;
-    ready = true;
-  }, (cause) => {
-    logger.warn('Unable to load settings');
-    error = errorMessage(cause);
-  }));
+  onMount(() =>
+    preferences.observe(
+      'appearance',
+      (value) => {
+        if (!dirty) appearance = value;
+        ready = true;
+      },
+      (cause) => {
+        logger.warn('Unable to load settings');
+        error = errorMessage(cause);
+      },
+    ),
+  );
 
   async function save() {
     error = '';
@@ -58,7 +64,9 @@
         Save settings
       </button>
     </div>
-    {#if error}<p role="alert" class="error">{error}</p>{/if}
+    {#if error}
+      <p role="alert" class="error">{error}</p>
+    {/if}
     {#if status}
       <p role="status">{status}</p>
     {/if}

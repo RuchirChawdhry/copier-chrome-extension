@@ -25,18 +25,24 @@ export function deleteItem(input: RemoveItem) {
   });
 }
 
-export const dispatchExample = createRouter<ExampleContract>({
-  'items.add': route(
-    (value): value is AddItem => isRecord(value) && typeof value.url === 'string' &&
-      (value.title === undefined || typeof value.title === 'string'),
-    saveItem,
-  ),
-  'items.remove': route(
-    (value): value is RemoveItem => isRecord(value) && typeof value.id === 'string',
-    deleteItem,
-  ),
-  'items.list': route(
-    (value): value is null => value === null,
-    () => enqueue(() => exampleStorage.get('savedItems')),
-  ),
-}, createLogger('worker:rpc'));
+export const dispatchExample = createRouter<ExampleContract>(
+  {
+    'items.add': route(
+      (value): value is AddItem =>
+        isRecord(value) &&
+        typeof value.url === 'string' &&
+        (value.title === undefined || typeof value.title === 'string'),
+      saveItem,
+    ),
+    'items.remove': route(
+      (value): value is RemoveItem =>
+        isRecord(value) && typeof value.id === 'string',
+      deleteItem,
+    ),
+    'items.list': route(
+      (value): value is null => value === null,
+      () => enqueue(() => exampleStorage.get('savedItems')),
+    ),
+  },
+  createLogger('worker:rpc'),
+);

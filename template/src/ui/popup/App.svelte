@@ -7,7 +7,10 @@
   import { exampleStorage } from '../../example/storage';
 
   const logger = createLogger('popup');
-  const items = watchStorage(exampleStorage.defaultValue('savedItems'), (update, fail) => exampleStorage.observe('savedItems', update, fail));
+  const items = watchStorage(
+    exampleStorage.defaultValue('savedItems'),
+    (update, fail) => exampleStorage.observe('savedItems', update, fail),
+  );
   let tab = $state<chrome.tabs.Tab | null>(null);
   let windowId = $state<number | null>(null);
   let busy = $state(false);
@@ -21,7 +24,10 @@
       .then((tabs) => {
         tab = tabs[0] ?? null;
         windowId = tab?.windowId ?? null;
-      }).catch(() => { logger.warn('Active tab lookup failed'); });
+      })
+      .catch(() => {
+        logger.warn('Active tab lookup failed');
+      });
   });
 
   async function saveCurrent() {
@@ -69,7 +75,14 @@
       </button>
     {/if}
     {#if features.settings}
-      <button type="button" onclick={() => { void chrome.runtime.openOptionsPage().catch(() => logger.error('Unable to open settings')); }}>
+      <button
+        type="button"
+        onclick={() => {
+          void chrome.runtime
+            .openOptionsPage()
+            .catch(() => logger.error('Unable to open settings'));
+        }}
+      >
         Settings
       </button>
     {/if}
