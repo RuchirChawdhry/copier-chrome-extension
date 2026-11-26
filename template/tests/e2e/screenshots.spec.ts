@@ -1,4 +1,4 @@
-import { mkdir, readFile } from 'node:fs/promises';
+import { mkdir, readFile, rm } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { expect, test } from './fixture';
 
@@ -33,8 +33,9 @@ test('capture each enabled surface in light and dark appearance', async ({
       height: 700,
     },
   ].filter((surface) => surface.enabled);
-  if (!surfaces.length) return;
   const directory = resolve('reports/screenshots');
+  await rm(directory, { recursive: true, force: true });
+  if (!surfaces.length) return;
   await mkdir(directory, { recursive: true });
   const page = await context.newPage();
   await page.goto(url(surfaces[0].file));

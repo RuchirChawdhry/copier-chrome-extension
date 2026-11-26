@@ -10,7 +10,7 @@
   },
   "packageManager": "pnpm@10.0.0",
   "scripts": {
-    "setup": "pnpm install --frozen-lockfile && pnpm exec playwright install chromium",
+    "setup": "pnpm install --frozen-lockfile && pnpm hooks:install && pnpm exec playwright install chromium",
     "check": "pnpm typecheck && pnpm lint && pnpm test",
     "dev": "node scripts/dev.mjs",
     "postinstall": "node scripts/install-hooks.mjs",

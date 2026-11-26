@@ -1,4 +1,5 @@
-import { readFile, writeFile } from 'node:fs/promises';
+import { readdir, readFile, writeFile } from 'node:fs/promises';
+import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 const original = await readFile('features.json', 'utf8');
 const keys = Object.keys(JSON.parse(original));
@@ -16,6 +17,11 @@ try {
     await writeFile('features.json', JSON.stringify(Object.fromEntries(keys.map((key, i) => [key, values[i]])), null, 2) + '\n');
     for (const command of [['build'], ['verify:build'], ['exec', 'playwright', 'test']])
       execFileSync('pnpm', command, { stdio: 'inherit', shell: process.platform === 'win32' });
+    const screenshots = await readdir('reports/screenshots').catch((error) => {
+      if (error.code === 'ENOENT') return [];
+      throw error;
+    });
+    assert.equal(screenshots.filter((file) => file.endsWith('.png')).length, 2 * values.slice(0, 3).filter(Boolean).length);
   }
 } finally {
   await writeFile('features.json', original);

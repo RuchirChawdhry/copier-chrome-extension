@@ -74,4 +74,6 @@ jobs:
           pnpm exec playwright install --with-deps chromium
           pnpm screenshots
           test "$(find reports/screenshots -name '*.png' | wc -l)" -eq 6
+          test -n "$(find test-results -name trace.zip -print -quit)"
+          test -f playwright-report/index.html
           pnpm check
