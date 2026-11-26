@@ -7,7 +7,7 @@
   import Status from './Status.svelte';
   import { onMount } from 'svelte';
 
-  const permission = { permissions: ['notifications'] };
+  const permission: chrome.permissions.Permissions = { permissions: ['notifications'] };
   let ready = $state(false);
   let granted = $state(false);
   let busy = $state(false);

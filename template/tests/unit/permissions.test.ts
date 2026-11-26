@@ -7,7 +7,7 @@ describe('optional permissions', () => {
     const remove = vi.fn().mockResolvedValue(true);
     vi.stubGlobal('chrome', { permissions: { request, remove } });
     try {
-      const permission = { permissions: ['notifications'] };
+      const permission: chrome.permissions.Permissions = { permissions: ['notifications'] };
       const result = permissions.request(permission);
       expect(request).toHaveBeenCalledWith(permission);
       await expect(result).resolves.toBe(false);
