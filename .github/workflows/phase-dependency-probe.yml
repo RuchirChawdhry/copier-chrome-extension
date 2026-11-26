@@ -1,0 +1,81 @@
+name: Phase 4 dependency refresh probe
+on:
+  push:
+    branches: [phase-4-release-performance]
+permissions:
+  contents: read
+concurrency:
+  group: template-dependencies
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    outputs:
+      changed: ${{ steps.refresh.outputs.changed }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '22'
+      - name: Render template
+        run: |
+          python -m pip install copier==9.14.1
+          copier copy --defaults --vcs-ref=HEAD . "$RUNNER_TEMP/extension"
+      - name: Refresh lockfile and validate
+        id: refresh
+        run: |
+          set -euo pipefail
+          corepack enable
+          cd "$RUNNER_TEMP/extension"
+          cp package.json "$RUNNER_TEMP/package-before.json"
+          pnpm update --lockfile-only --no-save
+          cmp package.json "$RUNNER_TEMP/package-before.json"
+          pnpm install --frozen-lockfile
+          pnpm check
+          pnpm build
+          pnpm verify:build
+          pnpm exec playwright install --with-deps chromium
+          pnpm exec playwright test
+          if cmp -s pnpm-lock.yaml "$GITHUB_WORKSPACE/template/pnpm-lock.yaml"; then
+            echo changed=false >> "$GITHUB_OUTPUT"
+          else
+            echo changed=true >> "$GITHUB_OUTPUT"
+          fi
+      - name: Upload validated lockfile
+        if: steps.refresh.outputs.changed == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: refreshed-lockfile
+          path: ${{ runner.temp }}/extension/pnpm-lock.yaml
+          if-no-files-found: error
+  propose:
+    needs: refresh
+    if: needs.refresh.outputs.changed == 'true' && github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || inputs.propose)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Propose validated update
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          branch="automation/lock-refresh-$GITHUB_RUN_ID"
+          existing="$(gh pr list --state open --base main --json headRefName --jq '.[] | select(.headRefName | startswith("automation/lock-refresh-")) | .headRefName')"
+          if [[ -n "$existing" ]]; then echo 'An update PR is already open.'; exit 0; fi
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$GITHUB_SHA"
+          gh run download "$GITHUB_RUN_ID" --name refreshed-lockfile --dir "$RUNNER_TEMP/lock"
+          cp "$RUNNER_TEMP/lock/pnpm-lock.yaml" template/pnpm-lock.yaml
+          git switch -c "$branch"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add template/pnpm-lock.yaml
+          git commit -m 'Refresh compatible pnpm dependencies'
+          git push origin "$branch"
+          gh pr create --base main --head "$branch" --title 'Refresh compatible pnpm dependencies' --body 'Generated from the template, frozen-installed, typechecked, linted, built and browser-tested. Review before merging.'
