@@ -1,64 +1,22 @@
-name: Phase 1 validation
+name: Generated project — shared CI validation
 on:
   push:
     branches: [phase-1-reliability]
+
 permissions:
-  contents: write
+  contents: read
+
 jobs:
-  prepare:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
-        with:
-          node-version: '22'
-      - run: python -m pip install copier
-      - run: copier copy --defaults --vcs-ref=HEAD . .validation/generated
-      - name: Format generated project and sync template
-        working-directory: .validation/generated
-        run: |
-          corepack enable
-          pnpm install --frozen-lockfile
-          pnpm fix
-          pnpm lint
-          python ../../tests/prepare_validation.py
-      - name: Commit normalized source and generated CI fixture
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add template
-          find .validation/generated -name node_modules -prune -o -type f -print0 | xargs -0 git add -f --
-          git diff --cached --quiet || git commit -m 'Normalize formatting and capture actual Copier-generated CI fixture'
-          git push
-      - name: Validate Copier lifecycle
-        run: python -m unittest discover -s tests
-      - name: Install Chromium
-        working-directory: .validation/generated
-        run: pnpm exec playwright install --with-deps chromium
-      - name: Verify representative feature combinations
-        working-directory: .validation/generated
-        run: |
-          pnpm typecheck
-          pnpm test
-          node ../../tests/validate_features.mjs
-      - name: Verify staged Svelte and TypeScript formatting and import organization
-        working-directory: .validation/generated
-        run: |
-          git init -b main
-          git config user.name 'Test'
-          git config user.email 'test@example.invalid'
-          env -u CI pnpm hooks:install
-          git add .
-          LEFTHOOK=0 git commit -m baseline
-          printf "import {removeItem,addItem} from './items';\nexport const operations={addItem,removeItem};\n" > src/core/hook-fixture.ts
-          printf '<script lang="ts">let count=$state(0);</script><button type="button" onclick={()=>count++}>{count}</button>\n' > src/ui/hook-fixture.svelte
-          git add src/core/hook-fixture.ts src/ui/hook-fixture.svelte
-          git commit -m fixture
-          git show HEAD:src/core/hook-fixture.ts | grep 'import { addItem, removeItem }'
-          git show HEAD:src/ui/hook-fixture.svelte | grep 'let count ='
-          pnpm lint
-      - name: Verify full automatic reload
-        working-directory: .validation/generated
-        run: pnpm test:reload
+  validate:
+    uses: RuchirChawdhry/ci-workflows/.github/workflows/node-ci.yml@f466464ed35ef956bfb4cba15e8c66efc9fb5b69
+    with:
+      project-path: .validation/generated
+      node-version: '22'
+      package-manager: pnpm
+      build-command: |
+        corepack pnpm build
+        corepack pnpm verify:build
+        corepack pnpm exec playwright install --with-deps chromium
+        corepack pnpm exec playwright test
+      artifact-path: .validation/generated/dist/
+      artifact-name: chromium-extension
