@@ -1,5 +1,4 @@
 {% if include_example %}{% raw %}<script lang="ts">
-  import Surface from '../components/Surface.svelte';
   import { createLogger, errorMessage } from '../../core/logger';
   import { watchStorage } from '../../core/reactive-storage';
   import { send } from '../../example/messages';
@@ -7,6 +6,7 @@
   import Button from '../components/Button.svelte';
   import SearchField from '../components/SearchField.svelte';
   import StatePanel from '../components/StatePanel.svelte';
+  import Surface from '../components/Surface.svelte';
   import Toggle from '../components/Toggle.svelte';
 
   const logger = createLogger('sidebar');
@@ -46,7 +46,13 @@
   }
 </script>
 
-<Surface {title} label="Workspace" description="Find and manage saved links." ready={$items.ready} badge={String($items.ready ? $items.value.length : '—')}>
+<Surface
+  {title}
+  label="Workspace"
+  description="Find and manage saved links."
+  ready={$items.ready}
+  badge={String($items.ready ? $items.value.length : '—')}
+>
   {#if error}
     <StatePanel kind="error" message={error} />
   {/if}
@@ -71,7 +77,9 @@
     {#if !filtered.length}
       <StatePanel kind="empty" message="No matching links." />
     {/if}
-    <ul class="divide-y divide-border rounded-lg border border-border bg-card p-3">
+    <ul
+      class="divide-y divide-border rounded-lg border border-border bg-card p-3"
+    >
       {#each filtered as item (item.id)}
         <li class="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
           <div class="min-w-0 flex-1">
@@ -84,7 +92,9 @@
               >{item.title}</a
             >
             {#if showUrls}
-              <span class="block truncate text-xs text-muted-foreground">{item.url}</span>
+              <span class="block truncate text-xs text-muted-foreground"
+                >{item.url}</span
+              >
             {/if}
           </div>
           <Button
@@ -103,10 +113,15 @@
 </Surface>
 {% endraw %}{% else %}{% raw %}<script lang="ts">
   import Surface from '../components/Surface.svelte';
+
   const title = chrome.runtime.getManifest().name;
 </script>
 
 <Surface {title} label="Workspace" description="Your extension sidebar.">
-  <div class="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">Ready for your product interface.</div>
+  <div
+    class="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground"
+  >
+    Ready for your product interface.
+  </div>
 </Surface>
 {% endraw %}{% endif %}

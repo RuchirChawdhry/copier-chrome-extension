@@ -1,5 +1,4 @@
 {% if include_example %}{% raw %}<script lang="ts">
-  import Surface from '../components/Surface.svelte';
   import { onMount } from 'svelte';
   import features from '../../../extension.config.json';
   import { createLogger, errorMessage } from '../../core/logger';
@@ -10,6 +9,7 @@
   import PermissionPanel from '../components/PermissionPanel.svelte';
   import StatePanel from '../components/StatePanel.svelte';
   import Status from '../components/Status.svelte';
+  import Surface from '../components/Surface.svelte';
   import Tabs from '../components/Tabs.svelte';
 
   let appearance = $state<Appearance>('system');
@@ -80,7 +80,9 @@
         retry={error ? load : undefined}
       />
     {:else}
-      <label class="text-sm font-medium" for="appearance">Preferred appearance</label>
+      <label class="text-sm font-medium" for="appearance"
+        >Preferred appearance</label
+      >
       <select
         class="h-9 w-full max-w-xs rounded-md border border-input bg-card px-3 text-sm"
         id="appearance"
@@ -119,7 +121,9 @@
   {/if}
   {#if features.toolbarBadge}
     <Card title="Toolbar badge"
-      ><p class="text-sm leading-relaxed text-muted-foreground">The toolbar icon shows the saved-link count.</p></Card
+      ><p class="text-sm leading-relaxed text-muted-foreground">
+        The toolbar icon shows the saved-link count.
+      </p></Card
     >
   {/if}
   {#if features.contentScript}
@@ -137,7 +141,13 @@
   >
 {/snippet}
 
-<Surface {title} label="Settings" description="Manage appearance and browser capabilities." wide {ready}>
+<Surface
+  {title}
+  label="Settings"
+  description="Manage appearance and browser capabilities."
+  wide
+  {ready}
+>
   {#if browserFeatures}
     <Tabs id="settings" {tabs} bind:active>
       {#snippet children(section)}
@@ -159,7 +169,6 @@
   </Dialog>
 </Surface>
 {% endraw %}{% else %}{% raw %}<script lang="ts">
-  import Surface from '../components/Surface.svelte';
   import { onMount } from 'svelte';
   import features from '../../../extension.config.json';
   import { createLogger, errorMessage } from '../../core/logger';
@@ -170,6 +179,7 @@
   import PermissionPanel from '../components/PermissionPanel.svelte';
   import StatePanel from '../components/StatePanel.svelte';
   import Status from '../components/Status.svelte';
+  import Surface from '../components/Surface.svelte';
   import Tabs from '../components/Tabs.svelte';
 
   let appearance = $state<Appearance>('system');
@@ -240,7 +250,9 @@
         retry={error ? load : undefined}
       />
     {:else}
-      <label class="text-sm font-medium" for="appearance">Preferred appearance</label>
+      <label class="text-sm font-medium" for="appearance"
+        >Preferred appearance</label
+      >
       <select
         class="h-9 w-full max-w-xs rounded-md border border-input bg-card px-3 text-sm"
         id="appearance"
@@ -279,12 +291,16 @@
   {/if}
   {#if features.toolbarBadge}
     <Card title="Toolbar badge"
-      ><p class="text-sm leading-relaxed text-muted-foreground">The toolbar badge helper is available for your product.</p></Card
+      ><p class="text-sm leading-relaxed text-muted-foreground">
+        The toolbar badge helper is available for your product.
+      </p></Card
     >
   {/if}
   {#if features.contentScript}
     <Card title="Content script"
-      ><p class="text-sm leading-relaxed text-muted-foreground">Configure permitted sites in extension.config.json.</p></Card
+      ><p class="text-sm leading-relaxed text-muted-foreground">
+        Configure permitted sites in extension.config.json.
+      </p></Card
     >
   {/if}
   <Button
@@ -295,7 +311,13 @@
   >
 {/snippet}
 
-<Surface {title} label="Settings" description="Manage appearance and browser capabilities." wide {ready}>
+<Surface
+  {title}
+  label="Settings"
+  description="Manage appearance and browser capabilities."
+  wide
+  {ready}
+>
   {#if browserFeatures}
     <Tabs id="settings" {tabs} bind:active>
       {#snippet children(section)}

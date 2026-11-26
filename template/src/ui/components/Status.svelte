@@ -7,7 +7,10 @@
 
 {#if message}
   <p
-    class={['text-sm', kind === 'error' ? 'text-destructive' : 'text-muted-foreground']}
+    class={[
+      'text-sm',
+      kind === 'error' ? 'text-destructive' : 'text-muted-foreground',
+    ]}
     role={kind === 'error' ? 'alert' : 'status'}
   >
     {message}

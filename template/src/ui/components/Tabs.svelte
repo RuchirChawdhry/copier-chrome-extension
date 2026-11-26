@@ -28,7 +28,11 @@
   }
 </script>
 
-<div class="flex gap-1 rounded-lg border border-border bg-muted p-1" role="tablist" aria-label="Settings sections">
+<div
+  class="flex gap-1 rounded-lg border border-border bg-muted p-1"
+  role="tablist"
+  aria-label="Settings sections"
+>
   {#each tabs as tab, index (tab.id)}
     <button
       class="min-h-8 flex-1 cursor-pointer rounded-md px-3 text-sm font-medium text-muted-foreground hover:text-foreground aria-selected:bg-card aria-selected:text-foreground aria-selected:shadow-sm"
@@ -47,6 +51,11 @@
     </button>
   {/each}
 </div>
-<div class="flex flex-col gap-3" role="tabpanel" id={`${id}-panel`} aria-labelledby={`${id}-tab-${active}`}>
+<div
+  class="flex flex-col gap-3"
+  role="tabpanel"
+  id={`${id}-panel`}
+  aria-labelledby={`${id}-tab-${active}`}
+>
   {@render children(active)}
 </div>

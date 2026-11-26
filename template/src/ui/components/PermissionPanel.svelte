@@ -73,7 +73,9 @@
       retry={error ? load : undefined}
     />
   {:else}
-    <p class="text-sm leading-relaxed text-muted-foreground">Access: {granted ? 'Granted' : 'Not granted'}</p>
+    <p class="text-sm leading-relaxed text-muted-foreground">
+      Access: {granted ? 'Granted' : 'Not granted'}
+    </p>
     <Button onclick={change} {busy}
       >{granted
         ? 'Remove notification access'
