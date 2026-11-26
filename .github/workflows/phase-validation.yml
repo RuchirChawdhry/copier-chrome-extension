@@ -29,9 +29,8 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add template
-          git add -f .validation/generated
-          git reset -- .validation/generated/node_modules
-          git commit -m 'Normalize formatting and capture actual Copier-generated CI fixture'
+          find .validation/generated -name node_modules -prune -o -type f -print0 | xargs -0 git add -f --
+          git diff --cached --quiet || git commit -m 'Normalize formatting and capture actual Copier-generated CI fixture'
           git push
       - name: Validate Copier lifecycle
         run: python -m unittest discover -s tests

@@ -11,8 +11,9 @@ for subdir in ("src", "scripts", "tests"):
 for name in ("biome.json", "tsconfig.json", "playwright.config.ts", "vitest.config.ts"):
     (template / name).write_bytes(Path(name).read_bytes())
 package = Path("package.json").read_text()
+parsed = json.loads(package)
 for key, value in (("name", "project_slug"), ("extensionName", "project_name"), ("description", "project_description")):
-    rendered = json.loads(package)[key]
+    rendered = parsed[key]
     package = package.replace(json.dumps(rendered), "{{ " + value + " | tojson }}", 1)
 (template / "package.json.jinja").write_text(package)
 for path in Path(".").glob("*.html"):
