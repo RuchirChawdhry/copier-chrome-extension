@@ -1,43 +1,17 @@
-name: Phase 4 prepare
+name: Phase 4 release validation
 on:
   push:
     branches: [phase-4-release-performance]
 permissions:
-  contents: write
+  contents: read
+  actions: read
 jobs:
-  prepare:
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
-        with:
-          node-version: '22'
-      - run: python -m pip install copier==9.14.1
-      - run: copier copy --defaults --vcs-ref=HEAD . "$RUNNER_TEMP/extension"
-      - name: Normalize and test generated source
-        run: |
-          cd "$RUNNER_TEMP/extension"
-          corepack enable
-          pnpm install --frozen-lockfile
-          pnpm exec biome check --write --max-diagnostics=100 .
-          pnpm check
-          pnpm build
-          pnpm verify:build
-          pnpm exec playwright install --with-deps chromium
-          pnpm exec playwright test
-          node scripts/bench.mjs --runs=3
-          node scripts/report-size.mjs
-          node scripts/package.mjs
-          cd release
-          sha256sum --check SHA256SUMS.txt
-      - name: Sync formatted files
-        run: |
-          cp -r "$RUNNER_TEMP/extension/src/." template/src/
-          cp -r "$RUNNER_TEMP/extension/scripts/." template/scripts/
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add template/src template/scripts
-          git diff --cached --quiet || git commit -m 'Normalize performance and packaging scripts'
-          git push
+  release:
+    uses: RuchirChawdhry/ci-workflows/.github/workflows/chromium-release.yml@0f046e3b1efb879322cde247a8ef6c496cc39731
+    with:
+      kind: template
+      publish: false
+  copier:
+    uses: RuchirChawdhry/ci-workflows/.github/workflows/copier-ci.yml@0f046e3b1efb879322cde247a8ef6c496cc39731
+    with:
+      profile: chromium

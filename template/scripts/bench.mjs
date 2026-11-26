@@ -129,7 +129,8 @@ try {
             () =>
               window.__extensionBenchmark?.data_ready_ms !== undefined &&
               window.__extensionBenchmark?.mount_ms !== undefined,
-            { timeout: 10_000 },
+            undefined,
+          { timeout: 10_000 },
           );
           const times = await page.evaluate(() => window.__extensionBenchmark);
           samples.push(

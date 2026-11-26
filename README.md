@@ -38,4 +38,4 @@ Every release includes a source archive, a generated example extension ZIP, SHA2
 
 The template's Jinja package manifest is not a native npm manifest. A weekly workflow renders the template, refreshes the lockfile within declared ranges, verifies the manifest is unchanged, frozen-installs, runs checks and browser tests, and proposes a lockfile-only PR. Enable the repository setting allowing GitHub Actions to create pull requests if disabled; without it a validated update branch and artifact remain available for review. Major dependency range changes remain explicit. Generated projects use weekly Dependabot npm and GitHub Actions updates.
 
-The template has no automatic generated-project CI on ordinary pushes; release and dependency automation are intentional exceptions.
+The template runs validation on pull requests and manual requests, releases on VERSION changes, and a scheduled dependency refresh. Ordinary pushes that do not change VERSION do not start generated-project CI.
