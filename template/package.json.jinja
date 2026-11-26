@@ -26,7 +26,8 @@
     "test:reload": "node scripts/test-reload.mjs",
     "bench": "pnpm build && node scripts/bench.mjs",
     "verify:build": "node scripts/verify-build.mjs",
-    "package": "pnpm build && node scripts/package.mjs"
+    "report:size": "pnpm build && node scripts/report-size.mjs",
+    "package": "pnpm build && pnpm verify:build && node scripts/package.mjs"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

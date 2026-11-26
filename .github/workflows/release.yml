@@ -1,0 +1,23 @@
+name: Release Copier template
+on:
+  push:
+    branches: [main]
+    paths: [VERSION]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the current VERSION from main
+        type: boolean
+        default: false
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: copier-template-release
+  cancel-in-progress: false
+jobs:
+  release:
+    uses: RuchirChawdhry/ci-workflows/.github/workflows/chromium-release.yml@0f046e3b1efb879322cde247a8ef6c496cc39731
+    with:
+      kind: template
+      publish: ${{ github.event_name == 'push' || inputs.publish }}

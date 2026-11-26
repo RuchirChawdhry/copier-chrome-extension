@@ -70,7 +70,7 @@
   }
 </script>
 
-<main data-ready="true">
+<main data-ready="true" data-data-ready={$items.ready && tabReady}>
   <div class="header">
     <h1>{title}</h1>
     <span class="count">{$items.ready ? $items.value.length : '—'} saved</span>
