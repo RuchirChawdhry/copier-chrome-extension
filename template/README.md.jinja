@@ -10,7 +10,7 @@ Requires Node.js 22.12+ and pnpm 10. Initialize Git and install the locked depen
 
 ```sh
 pnpm run setup     # Frozen install, Git hooks, bundled Chromium
-pnpm doctor        # Check prerequisites and write reports/doctor.json
+pnpm run doctor        # Check prerequisites and write reports/doctor.json
 pnpm check         # Typecheck, formatting/lint and unit tests
 pnpm screenshots   # Capture light/dark screenshots of enabled surfaces
 pnpm dev           # Rebuild and reload the unpacked extension on changes
@@ -122,4 +122,4 @@ Dependabot proposes npm/pnpm and GitHub Actions updates weekly. Review and valid
 
 ## Declarative configuration
 
-`extension.config.json` is the configuration authority. Surface flags control standard manifest entries; `manifest` holds declared permission lists, commands and additional manifest keys. `contentScripts` entries specify source, packaged output, matches and optional manifest properties. Keep capability flags and declarations consistent; update your own event handlers when adding new capabilities. `pnpm verify:build` compares the built manifest with the declaration and independently checks local executable assets, version, icon dimensions and production-only output. `reports/diagnostics.json` summarizes test errors, captured browser events and artifact paths. Logs and traces may contain sensitive data from tests; use synthetic fixtures. `pnpm doctor` emits `reports/doctor.json`, exits nonzero for missing required prerequisites and warns about Git hooks or absent build output.
+`extension.config.json` is the configuration authority. Surface flags control standard manifest entries; `manifest` holds declared permission lists, commands and additional manifest keys. `contentScripts` entries specify source, packaged output, matches and optional manifest properties. Keep capability flags and declarations consistent; update your own event handlers when adding new capabilities. `pnpm verify:build` compares the built manifest with the declaration and independently checks local executable assets, version, icon dimensions and production-only output. `reports/diagnostics.json` summarizes test errors, captured browser events and artifact paths. Logs and traces may contain sensitive data from tests; use synthetic fixtures. `pnpm run doctor` emits `reports/doctor.json`, exits nonzero for missing required prerequisites and warns about Git hooks or absent build output.

@@ -1,5 +1,4 @@
-{% if include_example %}{% raw %}
-import { mkdir, readFile, rm } from 'node:fs/promises';
+{% if include_example %}{% raw %}import { mkdir, readFile, rm } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { expect, test } from './fixture';
 
@@ -108,8 +107,7 @@ test('capture each enabled surface in light and dark appearance', async ({
     }
   }
 });
-{% endraw %}{% else %}{% raw %}
-import { mkdir, readFile, rm } from 'node:fs/promises';
+{% endraw %}{% else %}{% raw %}import { mkdir, readFile, rm } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { expect, test } from './fixture';
 

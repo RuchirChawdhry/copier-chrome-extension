@@ -32,11 +32,10 @@ jobs:
           git init -b main
           corepack enable
           env -u CI pnpm run setup
-          pnpm fix
           pnpm check
           pnpm build
           pnpm verify:build
-          pnpm doctor
+          pnpm run doctor
           node -e 'const r=require("./reports/doctor.json"); if(r.checks.some(c=>c.name==="Git hooks"&&c.status!=="pass"))process.exit(1)'
       - name: Install Linux browser libraries
         if: runner.os == 'Linux'
@@ -51,6 +50,10 @@ jobs:
           pnpm build
           pnpm verify:build
           pnpm package
+      - name: Verify product-specific configuration
+        if: matrix.example == 'false'
+        working-directory: generated
+        run: node ../tests/validate_custom_config.mjs
       - name: Upload diagnostics
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9

@@ -1,5 +1,4 @@
-{% if include_example %}{% raw %}
-import { createLogger } from '../core/logger';
+{% if include_example %}{% raw %}import { createLogger } from '../core/logger';
 import { registerRouter } from '../core/router';
 import { registerExampleBadge } from '../example/badge';
 import { registerExampleCommands } from '../example/commands';
@@ -13,8 +12,7 @@ registerExampleMenus(__FEATURES__);
 if (__FEATURES__.toolbarBadge) registerExampleBadge();
 if (__FEATURES__.keyboardShortcuts) registerExampleCommands();
 createLogger('worker').debug('Service worker initialized');
-{% endraw %}{% else %}{% raw %}
-import { createLogger } from '../core/logger';
+{% endraw %}{% else %}{% raw %}import { createLogger } from '../core/logger';
 import { connectDevReload } from './dev-reload';
 
 if (__DEV_RELOAD_PORT__) connectDevReload(__DEV_RELOAD_PORT__);

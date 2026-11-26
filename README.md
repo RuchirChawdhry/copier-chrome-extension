@@ -42,4 +42,4 @@ The template runs validation on pull requests and manual requests, releases on V
 
 ## Configuration and diagnostics
 
-Edit `extension.config.json` to declare feature flags, manifest permission lists, commands and bundled content scripts. `pnpm doctor` checks prerequisites; `reports/diagnostics.json` summarizes browser test results. UI-only development builds refresh affected pages and remove stale assets; worker or manifest changes reload the extension. Validation includes Windows and Linux.
+Edit `extension.config.json` to declare feature flags, manifest permission lists, commands and bundled content scripts. `pnpm run doctor` checks prerequisites; `reports/diagnostics.json` summarizes browser test results. UI-only development builds refresh affected pages and remove stale assets; worker or manifest changes reload the extension. Validation includes Windows and Linux.

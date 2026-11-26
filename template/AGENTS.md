@@ -13,4 +13,4 @@
 - Reuse `src/ui/components/` for accessible controls, loading/empty/error states and settings sections. Keep optional browser APIs behind their feature flags, request optional permissions directly from a user gesture, and restrict content-script matches to the required sites.
 - Run `pnpm report:size` and `pnpm bench` for performance-sensitive changes; compare like-for-like measurements. Use stable package versions and matching release tags. Do not publish browser-store packages automatically.
 
-- Run `pnpm doctor` to inspect prerequisites and `reports/diagnostics.json` for machine-readable browser test feedback.
+- Run `pnpm run doctor` to inspect prerequisites and `reports/diagnostics.json` for machine-readable browser test feedback.

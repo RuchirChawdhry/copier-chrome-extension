@@ -1,5 +1,4 @@
-{% if include_example %}{% raw %}
-<script lang="ts">
+{% if include_example %}{% raw %}<script lang="ts">
   import { onMount } from 'svelte';
   import features from '../../../extension.config.json';
   import { createLogger, errorMessage } from '../../core/logger';
@@ -144,8 +143,7 @@
     <StatePanel kind="empty" message="No saved links yet." />
   {/if}
 </main>
-{% endraw %}{% else %}{% raw %}
-<script lang="ts">
+{% endraw %}{% else %}{% raw %}<script lang="ts">
   import { onMount } from 'svelte';
   import config from '../../../extension.config.json';
   import { createLogger, errorMessage } from '../../core/logger';
