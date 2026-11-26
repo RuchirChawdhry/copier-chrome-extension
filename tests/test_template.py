@@ -28,12 +28,16 @@ class CopierTemplateTests(unittest.TestCase):
 
     def test_default_five_interfaces(self):
         output = self.render(project_name="Test Extension", project_slug="test-extension")
-        flags = json.loads((output / "features.json").read_text())
+        flags = json.loads((output / "extension.config.json").read_text())
         self.assertTrue(all(flags[key] for key in ('popup', 'sidebar', 'settings', 'pageContextMenu', 'toolbarContextMenu')))
         self.assertFalse(any(flags[key] for key in ('keyboardShortcuts', 'toolbarBadge', 'optionalPermissions', 'contentScript')))
         self.assertTrue((output / '.copier-answers.yml').exists())
         self.assertTrue((output / 'AGENTS.md').exists())
         self.assertTrue((output / 'lefthook.yml').exists())
+        self.assertFalse((output / 'src/example/items.ts').exists())
+        self.assertFalse((output / 'tests/unit/items.test.ts').exists())
+        self.assertFalse(flags['example'])
+        self.assertNotIn('activeTab', flags['manifest']['permissions'])
         for size in (16, 32, 48, 128):
             icon = (output / 'icons' / f'icon-{size}.png').read_bytes()
             self.assertEqual(icon[:8], b'\x89PNG\r\n\x1a\n')
@@ -47,13 +51,19 @@ class CopierTemplateTests(unittest.TestCase):
     def test_slim_feature_configuration(self):
         output = self.render(include_sidebar="false", include_settings="false",
                              include_page_context_menu="false", include_toolbar_context_menu="false")
-        flags = json.loads((output / "features.json").read_text())
-        self.assertEqual(flags, {
+        flags = json.loads((output / "extension.config.json").read_text())
+        self.assertEqual({key: flags[key] for key in ('popup','sidebar','settings','pageContextMenu','toolbarContextMenu','keyboardShortcuts','toolbarBadge','optionalPermissions','contentScript')}, {
             "popup": True, "sidebar": False, "settings": False,
             "pageContextMenu": False, "toolbarContextMenu": False,
             "keyboardShortcuts": False, "toolbarBadge": False,
             "optionalPermissions": False, "contentScript": False
         })
+
+    def test_example_profile(self):
+        output = self.render(include_example="true")
+        self.assertTrue((output / "src/example/items.ts").exists())
+        self.assertTrue((output / "tests/unit/items.test.ts").exists())
+        self.assertTrue(json.loads((output / "extension.config.json").read_text())["example"])
 
 
 if __name__ == "__main__":

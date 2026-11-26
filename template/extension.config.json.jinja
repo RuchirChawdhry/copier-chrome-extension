@@ -1,0 +1,35 @@
+{
+  "popup": {{ include_popup | tojson }},
+  "sidebar": {{ include_sidebar | tojson }},
+  "settings": {{ include_settings | tojson }},
+  "pageContextMenu": {{ include_page_context_menu | tojson }},
+  "toolbarContextMenu": {{ include_toolbar_context_menu | tojson }},
+  "keyboardShortcuts": {{ include_keyboard_shortcuts | tojson }},
+  "toolbarBadge": {{ include_toolbar_badge | tojson }},
+  "optionalPermissions": {{ include_optional_permissions | tojson }},
+  "contentScript": {{ include_content_script | tojson }},
+  "example": {{ include_example | tojson }},
+  "minimumChromeVersion": "116",
+  "manifest": {
+    "permissions": {% if include_example and (include_popup or include_page_context_menu or include_toolbar_context_menu or include_keyboard_shortcuts) %}["activeTab"]{% else %}[]{% endif %},
+    "host_permissions": [],
+    "optional_permissions": {% if include_optional_permissions %}["notifications"]{% else %}[]{% endif %},
+    "optional_host_permissions": [],
+    "commands": {% if include_keyboard_shortcuts %}{
+      "{{ 'save-active-page' if include_example else 'extension-action' }}": {
+        "suggested_key": {
+          "default": "Alt+Shift+S"
+        },
+        "description": "{{ 'Save the active page' if include_example else 'Extension action' }}"
+      }
+    }{% else %}{}{% endif %}
+  },
+  "contentScripts": {% if include_content_script %}[
+    {
+      "entry": "src/content/index.ts",
+      "output": "content.js",
+      "matches": ["https://example.com/*"],
+      "run_at": "document_idle"
+    }
+  ]{% else %}[]{% endif %}
+}

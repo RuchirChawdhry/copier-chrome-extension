@@ -1,6 +1,6 @@
-<script lang="ts">
+{% if include_example %}{% raw %}<script lang="ts">
   import { onMount } from 'svelte';
-  import features from '../../../features.json';
+  import features from '../../../extension.config.json';
   import { createLogger, errorMessage } from '../../core/logger';
   import { watchStorage } from '../../core/reactive-storage';
   import { send } from '../../example/messages';
@@ -143,3 +143,53 @@
     <StatePanel kind="empty" message="No saved links yet." />
   {/if}
 </main>
+{% endraw %}{% else %}{% raw %}<script lang="ts">
+  import { onMount } from 'svelte';
+  import config from '../../../extension.config.json';
+  import { createLogger, errorMessage } from '../../core/logger';
+  import Button from '../components/Button.svelte';
+  import Status from '../components/Status.svelte';
+
+  const title = chrome.runtime.getManifest().name;
+  const logger = createLogger('popup');
+  let error = $state('');
+  let windowId = $state<number | undefined>(undefined);
+  onMount(() => {
+    if (config.sidebar)
+      void chrome.windows
+        .getCurrent()
+        .then((window) => {
+          windowId = window.id;
+        })
+        .catch(() => logger.warn('Unable to identify window'));
+  });
+  function fail(cause: unknown) {
+    error = errorMessage(cause);
+    logger.warn('Unable to open interface');
+  }
+  function openSidebar() {
+    if (windowId !== undefined)
+      void chrome.sidePanel.open({ windowId }).catch(fail);
+  }
+  function openSettings() {
+    void chrome.runtime.openOptionsPage().catch(fail);
+  }
+</script>
+
+<main data-ready="true" data-data-ready="true">
+  <h1>{title}</h1>
+  {#if config.sidebar || config.settings}
+    <div class="actions">
+      {#if config.sidebar}
+        <Button onclick={openSidebar} disabled={windowId === undefined}
+          >Open sidebar</Button
+        >
+      {/if}
+      {#if config.settings}
+        <Button onclick={openSettings}>Settings</Button>
+      {/if}
+    </div>
+  {/if}
+  <Status message={error} kind="error" />
+</main>
+{% endraw %}{% endif %}

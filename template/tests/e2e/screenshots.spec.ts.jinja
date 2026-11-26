@@ -1,10 +1,10 @@
-import { mkdir, readFile, rm } from 'node:fs/promises';
+{% if include_example %}{% raw %}import { mkdir, readFile, rm } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { expect, test } from './fixture';
 
 const features = JSON.parse(
-  await readFile('features.json', 'utf8'),
-) as typeof import('../../features.json');
+  await readFile('extension.config.json', 'utf8'),
+) as typeof import('../../extension.config.json');
 
 test('capture each enabled surface in light and dark appearance', async ({
   extension,
@@ -107,3 +107,91 @@ test('capture each enabled surface in light and dark appearance', async ({
     }
   }
 });
+{% endraw %}{% else %}{% raw %}import { mkdir, readFile, rm } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { expect, test } from './fixture';
+
+const features = JSON.parse(
+  await readFile('extension.config.json', 'utf8'),
+) as typeof import('../../extension.config.json');
+
+test('capture each enabled surface in light and dark appearance', async ({
+  extension,
+}, testInfo) => {
+  const { context, url } = extension;
+  const surfaces = [
+    {
+      enabled: features.popup,
+      name: 'popup',
+      file: 'popup.html',
+      width: 360,
+      height: 400,
+    },
+    {
+      enabled: features.sidebar,
+      name: 'sidebar',
+      file: 'sidebar.html',
+      width: 360,
+      height: 720,
+    },
+    {
+      enabled: features.settings,
+      name: 'settings',
+      file: 'options.html',
+      width: 900,
+      height: 700,
+    },
+  ].filter((surface) => surface.enabled);
+  const directory = resolve('reports/screenshots');
+  await rm(directory, { recursive: true, force: true });
+  if (!surfaces.length) return;
+  await mkdir(directory, { recursive: true });
+  const page = await context.newPage();
+  await page.goto(url(surfaces[0].file));
+  for (const surface of surfaces) {
+    await page.setViewportSize({
+      width: surface.width,
+      height: surface.height,
+    });
+    for (const theme of ['light', 'dark'] as const) {
+      await page.evaluate(
+        (appearance) => chrome.storage.local.set({ 'ui.theme': appearance }),
+        theme,
+      );
+      await page.goto(url(surface.file));
+      await expect(page.locator('[data-ready="true"]')).toBeVisible();
+      await expect
+        .poll(() =>
+          page.evaluate(() => document.documentElement.dataset.appearance),
+        )
+        .toBe(theme);
+      if (surface.name === 'settings')
+        await expect(page.getByLabel('Preferred appearance')).toHaveValue(
+          theme,
+        );
+      const name = `${surface.name}-${theme}.png`;
+      const path = resolve(directory, name);
+      await page.screenshot({ path, animations: 'disabled' });
+      await testInfo.attach(name, { path, contentType: 'image/png' });
+      if (
+        surface.name === 'settings' &&
+        (features.optionalPermissions ||
+          features.keyboardShortcuts ||
+          features.toolbarBadge ||
+          features.contentScript)
+      ) {
+        await page.getByRole('tab', { name: 'Browser' }).click();
+        if (features.optionalPermissions)
+          await expect(page.getByText('Access: Not granted')).toBeVisible();
+        const browserName = `settings-browser-${theme}.png`;
+        const browserPath = resolve(directory, browserName);
+        await page.screenshot({ path: browserPath, animations: 'disabled' });
+        await testInfo.attach(browserName, {
+          path: browserPath,
+          contentType: 'image/png',
+        });
+      }
+    }
+  }
+});
+{% endraw %}{% endif %}

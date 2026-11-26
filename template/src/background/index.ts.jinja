@@ -1,0 +1,66 @@
+{% if include_example %}{% raw %}import { createLogger } from '../core/logger';
+import { registerRouter } from '../core/router';
+import { registerExampleBadge } from '../example/badge';
+import { registerExampleCommands } from '../example/commands';
+import { dispatchExample } from '../example/handlers';
+import { registerExampleMenus } from '../example/menus';
+import { connectDevReload } from './dev-reload';
+
+if (__DEV_RELOAD_PORT__) connectDevReload(__DEV_RELOAD_PORT__);
+registerRouter(dispatchExample);
+registerExampleMenus(__FEATURES__);
+if (__FEATURES__.toolbarBadge) registerExampleBadge();
+if (__FEATURES__.keyboardShortcuts) registerExampleCommands();
+createLogger('worker').debug('Service worker initialized');
+{% endraw %}{% else %}{% raw %}import { createLogger } from '../core/logger';
+import { connectDevReload } from './dev-reload';
+
+if (__DEV_RELOAD_PORT__) connectDevReload(__DEV_RELOAD_PORT__);
+const logger = createLogger('worker');
+// Register product routes and browser event listeners here, synchronously.
+if (__FEATURES__.pageContextMenu || __FEATURES__.toolbarContextMenu) {
+  chrome.runtime.onInstalled.addListener(() => {
+    void chrome.contextMenus
+      .removeAll()
+      .then(() => {
+        if (__FEATURES__.toolbarContextMenu && __FEATURES__.settings)
+          chrome.contextMenus.create({
+            id: 'open-settings',
+            title: 'Settings',
+            contexts: ['action'],
+          });
+        if (__FEATURES__.pageContextMenu && __FEATURES__.settings)
+          chrome.contextMenus.create({
+            id: 'page-settings',
+            title: 'Extension settings',
+            contexts: ['page'],
+          });
+        if (__FEATURES__.toolbarContextMenu && __FEATURES__.sidebar)
+          chrome.contextMenus.create({
+            id: 'open-sidebar',
+            title: 'Open sidebar',
+            contexts: ['action'],
+          });
+      })
+      .catch(() => logger.warn('Unable to register menus'));
+  });
+  chrome.contextMenus.onClicked.addListener((info, tab) => {
+    if (
+      info.menuItemId === 'open-settings' ||
+      info.menuItemId === 'page-settings'
+    )
+      void chrome.runtime
+        .openOptionsPage()
+        .catch(() => logger.warn('Unable to open settings'));
+    if (info.menuItemId === 'open-sidebar' && tab?.windowId !== undefined)
+      void chrome.sidePanel
+        .open({ windowId: tab.windowId })
+        .catch(() => logger.warn('Unable to open sidebar'));
+  });
+}
+if (__FEATURES__.keyboardShortcuts)
+  chrome.commands.onCommand.addListener((command) =>
+    logger.debug('Command: ' + command),
+  );
+logger.debug('Service worker initialized');
+{% endraw %}{% endif %}

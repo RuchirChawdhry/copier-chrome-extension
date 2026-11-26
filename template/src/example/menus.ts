@@ -1,7 +1,7 @@
 import { createLogger } from '../core/logger';
 import { saveItem } from './handlers';
 
-type Features = typeof import('../../features.json');
+type Features = typeof import('../../extension.config.json');
 const logger = createLogger('worker:menus');
 
 function createMenu(properties: chrome.contextMenus.CreateProperties) {

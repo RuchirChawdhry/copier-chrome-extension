@@ -1,5 +1,6 @@
 import { mount } from 'svelte';
 import { initializeAppearance } from '../../core/appearance';
+import { registerDevRefresh } from '../../core/dev-refresh';
 import { createLogger } from '../../core/logger';
 import App from './App.svelte';
 
@@ -9,3 +10,4 @@ void initializeAppearance();
 target.replaceChildren();
 mount(App, { target });
 createLogger('popup').debug('UI mounted');
+registerDevRefresh('popup');

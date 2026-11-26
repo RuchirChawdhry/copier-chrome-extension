@@ -2,8 +2,8 @@ import { readFileSync } from 'node:fs';
 import { expect, test } from './fixture';
 
 const features = JSON.parse(
-  readFileSync('features.json', 'utf8'),
-) as typeof import('../../features.json');
+  readFileSync('extension.config.json', 'utf8'),
+) as typeof import('../../extension.config.json');
 
 test('optional capabilities match manifest and runtime behavior', async ({
   extension,
