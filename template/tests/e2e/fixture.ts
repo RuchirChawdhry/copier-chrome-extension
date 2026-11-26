@@ -5,10 +5,10 @@ import { type BrowserContext, chromium, test as base } from '@playwright/test';
 type Extension = { context: BrowserContext; id: string; url: (filename: string) => string };
 
 export const test = base.extend<{ extension: Extension }>({
-  extension: async ({}, use, testInfo) => {
+  extension: async ({ headless }, use, testInfo) => {
     const dist = resolve('dist');
     const context = await chromium.launchPersistentContext('', {
-      channel: 'chromium', headless: true,
+      channel: 'chromium', headless,
       args: [`--disable-extensions-except=${dist}`, `--load-extension=${dist}`],
     });
     try {

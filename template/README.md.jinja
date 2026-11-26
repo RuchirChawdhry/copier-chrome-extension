@@ -83,7 +83,7 @@ Only attach to browser instances and debugging ports you control. Close the debu
 - `src/example/`: saved-link domain, RPC contract, storage schema, handlers and menu actions. Replace this folder and the sample UI behavior with your product.
 - `src/background/index.ts`: synchronous worker wiring. Register your routes and menu listeners here.
 
-RPC uses a typed contract, e.g. `await send('items.list', null)` returns saved items. Define input/output pairs, register validated routes, and pass JSON-serializable values. Use `route` to validate incoming requests; the client rejects error responses. No initial UI rendering depends on RPC.
+RPC uses a typed contract, e.g. `await send('items.list', null)` returns saved items. Define input/output pairs, register validated routes, and pass JSON-serializable values (use `null`, not `undefined`, for an empty result). Use `route` to validate incoming requests; the client rejects error responses. No initial UI rendering depends on RPC.
 
 Use `createStorage` with typed defaults and runtime validators. `get`, `set`, `subscribe`, and `observe` are key-specific; `observe` delivers the initial value and subsequent events without redundant reads. Invalid/missing values fall back to defaults. Subscribe via `watchStorage` for a Svelte-readable store. Use the queue for read-modify-write mutations in the worker; direct writes to independent preferences are fine. The existing `savedItems` and `appearance` storage keys are preserved.
 
