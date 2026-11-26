@@ -3,8 +3,8 @@ import { resolve } from 'node:path';
 import { expect, test } from './fixture';
 
 const features = JSON.parse(
-  readFileSync(resolve('features.json'), 'utf8'),
-) as typeof import('../../features.json');
+  readFileSync(resolve('extension.config.json'), 'utf8'),
+) as typeof import('../../extension.config.json');
 
 test('configured surfaces, typed RPC, reactive storage and settings', async ({
   extension,

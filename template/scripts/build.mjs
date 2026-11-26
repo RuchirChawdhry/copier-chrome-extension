@@ -3,81 +3,15 @@ import { resolve } from 'node:path';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { build as esbuild } from 'esbuild';
 import { build as viteBuild } from 'vite';
+import { enabledSurfaces, loadConfig, makeManifest, safeBuildDirectory } from './config.mjs';
 
 const devPort = Number(process.env.EXTENSION_DEV_RELOAD_PORT ?? 0);
 const dev = devPort > 0;
 const root = process.cwd();
-const dist = resolve(root, process.env.EXTENSION_BUILD_DIR ?? 'dist');
-const features = JSON.parse(
-  await readFile(resolve(root, 'features.json'), 'utf8'),
-);
+const dist = safeBuildDirectory(process.env.EXTENSION_BUILD_DIR ?? 'dist');
+const features = await loadConfig();
 const pkg = JSON.parse(await readFile(resolve(root, 'package.json'), 'utf8'));
-
-const manifest = {
-  manifest_version: 3,
-  name: pkg.extensionName ?? pkg.name,
-  description: pkg.description,
-  version: pkg.version,
-  minimum_chrome_version: '116',
-  icons: {
-    16: 'icons/icon-16.png',
-    32: 'icons/icon-32.png',
-    48: 'icons/icon-48.png',
-    128: 'icons/icon-128.png',
-  },
-  permissions: [
-    'storage',
-    ...(features.popup ||
-    features.pageContextMenu ||
-    features.toolbarContextMenu ||
-    features.keyboardShortcuts
-      ? ['activeTab']
-      : []),
-    ...(features.sidebar ? ['sidePanel'] : []),
-    ...(features.pageContextMenu || features.toolbarContextMenu
-      ? ['contextMenus']
-      : []),
-  ],
-  ...(features.optionalPermissions
-    ? { optional_permissions: ['notifications'] }
-    : {}),
-  ...(features.keyboardShortcuts
-    ? {
-        commands: {
-          'save-active-page': {
-            suggested_key: { default: 'Alt+Shift+S' },
-            description: 'Save the active page',
-          },
-        },
-      }
-    : {}),
-  ...(features.contentScript
-    ? {
-        content_scripts: [
-          {
-            matches: ['https://example.com/*'],
-            js: ['content.js'],
-            run_at: 'document_idle',
-          },
-        ],
-      }
-    : {}),
-  background: { service_worker: 'background.js', type: 'module' },
-  action: features.popup
-    ? {
-        default_title: pkg.name,
-        default_popup: 'popup.html',
-        default_icon: { 16: 'icons/icon-16.png', 32: 'icons/icon-32.png' },
-      }
-    : {
-        default_title: pkg.name,
-        default_icon: { 16: 'icons/icon-16.png', 32: 'icons/icon-32.png' },
-      },
-  ...(features.sidebar ? { side_panel: { default_path: 'sidebar.html' } } : {}),
-  ...(features.settings
-    ? { options_ui: { page: 'options.html', open_in_tab: true } }
-    : {}),
-};
+const manifest = makeManifest(features, pkg);
 
 await rm(dist, { recursive: true, force: true });
 await mkdir(dist, { recursive: true });
@@ -87,13 +21,7 @@ await writeFile(
   JSON.stringify(manifest, null, 2) + '\n',
 );
 
-const entryPoints = [
-  ...(features.popup ? ['popup.html'] : []),
-  ...(features.sidebar ? ['sidebar.html'] : []),
-  ...(features.settings ? ['options.html'] : []),
-];
-
-for (const html of entryPoints) {
+for (const [, html] of enabledSurfaces(features)) {
   await viteBuild({
     root,
     configFile: false,
@@ -124,7 +52,7 @@ const workerConfig = {
   minify: !dev,
   platform: 'browser',
   format: 'esm',
-  target: 'chrome116',
+  target: 'chrome' + features.minimumChromeVersion,
   define: {
     __FEATURES__: JSON.stringify(features),
     __DEV__: JSON.stringify(dev),
@@ -133,15 +61,15 @@ const workerConfig = {
 };
 
 await esbuild(workerConfig);
-if (features.contentScript) {
+for (const script of features.contentScripts) {
   await esbuild({
-    entryPoints: [resolve(root, 'src/content/index.ts')],
-    outfile: resolve(dist, 'content.js'),
+    entryPoints: [resolve(root, script.entry)],
+    outfile: resolve(dist, script.output),
     bundle: true,
     minify: !dev,
     platform: 'browser',
     format: 'iife',
-    target: 'chrome116',
+    target: 'chrome' + features.minimumChromeVersion,
     define: { __DEV__: JSON.stringify(dev) },
   });
 }

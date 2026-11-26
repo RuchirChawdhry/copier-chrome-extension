@@ -12,7 +12,7 @@ const options = Object.fromEntries(
       return [arg.slice(2, index), arg.slice(index + 1)];
     }),
 );
-const features = JSON.parse(await readFile('features.json', 'utf8'));
+const features = JSON.parse(await readFile('extension.config.json', 'utf8'));
 const manifest = JSON.parse(await readFile('dist/manifest.json', 'utf8'));
 const enabled = Object.entries({
   popup: 'popup.html',
