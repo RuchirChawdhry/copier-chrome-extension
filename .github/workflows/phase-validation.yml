@@ -1,0 +1,36 @@
+name: Phase 3 prepare
+on:
+  push:
+    branches: [phase-3-browser-capabilities]
+permissions:
+  contents: write
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '22'
+      - run: python -m pip install copier
+      - run: copier copy --defaults --vcs-ref=HEAD . .validation/generated
+      - name: Normalize and validate
+        working-directory: .validation/generated
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+          pnpm fix
+          pnpm check
+          pnpm build
+          pnpm verify:build
+          python ../../tests/prepare_validation.py
+      - name: Commit generated fixture and formatted source
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add template
+          find .validation/generated -name node_modules -prune -o -name dist -prune -o -type f -print0 | xargs -0 git add -f --
+          git diff --cached --quiet || git commit -m 'Normalize Phase 3 source and capture generated fixture'
+          git push

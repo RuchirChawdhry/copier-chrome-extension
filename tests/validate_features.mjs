@@ -10,11 +10,14 @@ const cases = {
   menusOnly: [false, false, false, true, true],
   none: [false, false, false, false, false],
   settingsOnly: [false, false, true, false, false],
+  allCapabilities: [true, true, true, true, true, true, true, true, true],
+  backgroundCapabilities: [false, false, false, false, false, true, true, false, true],
+  optionalAccess: [false, false, true, false, false, false, false, true, false],
 };
 try {
   for (const [name, values] of Object.entries(cases)) {
     console.log('Testing feature configuration: ' + name);
-    await writeFile('features.json', JSON.stringify(Object.fromEntries(keys.map((key, i) => [key, values[i]])), null, 2) + '\n');
+    await writeFile('features.json', JSON.stringify(Object.fromEntries(keys.map((key, i) => [key, values[i] ?? false])), null, 2) + '\n');
     for (const command of [['build'], ['verify:build'], ['exec', 'playwright', 'test']])
       execFileSync('pnpm', command, { stdio: 'inherit', shell: process.platform === 'win32' });
     const screenshots = await readdir('reports/screenshots').catch((error) => {

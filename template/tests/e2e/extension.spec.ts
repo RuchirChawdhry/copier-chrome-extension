@@ -73,6 +73,13 @@ test('configured surfaces, typed RPC, reactive storage and settings', async ({
       ).toBeVisible();
     }
     if (features.sidebar) {
+      const search = page.getByRole('searchbox', { name: 'Search saved links' });
+      await search.fill('unmatched query');
+      await expect(page.getByText('No matching links.')).toBeVisible();
+      await search.fill('Fixture');
+      await expect(page.getByRole('link', { name: 'Fixture item' })).toBeVisible();
+      await expect(page.getByRole('link', { name: 'Second item' })).toHaveCount(0);
+      await search.clear();
       const second = await context.newPage();
       await second.goto(url('sidebar.html'));
       await expect(

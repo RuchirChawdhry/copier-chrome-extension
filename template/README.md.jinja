@@ -94,3 +94,18 @@ Use `createLogger('popup')` (or another context). Debug/info output is developme
 Run `pnpm screenshots` for predictable light/dark PNGs in `reports/screenshots/`. The generated screenshot directory is replaced on each capture; keep personal images elsewhere. `pnpm test:e2e` captures the same screenshots, traces for persistent browser contexts in `test-results/`, and an HTML report in `playwright-report/`. View a trace with `pnpm exec playwright show-trace path/to/trace.zip`. CI uploads these files as `chromium-diagnostics` even on failed tests. Screenshots are extension-page renderings at fixed viewports, not browser chrome or native toolbar panels. Fixture data is synthetic; review traces before sharing if you add tests with real data.
 
 Run `pnpm run setup` explicitly: `pnpm setup` is a pnpm built-in. Initialize Git before setup to install hooks automatically. On Linux, if browser libraries are missing, run `pnpm exec playwright install --with-deps chromium`.
+
+## Optional browser capabilities
+
+All four new flags default to false. Choose them during Copier generation or change `features.json` and rebuild.
+
+| Flag | Example | Access |
+| --- | --- | --- |
+| `keyboardShortcuts` | Save the active page (suggested Alt+Shift+S) | `activeTab` on user invocation |
+| `toolbarBadge` | Saved-link count, cleared at zero | No new permission |
+| `optionalPermissions` | Grant/revoke notification access in Settings | Optional `notifications`; never required |
+| `contentScript` | Isolated content-script entry at `src/content/index.ts` | Only `https://example.com/*` |
+
+Change the sample content-script match in `scripts/build.mjs` and its verification test before using it in a real product. Opting in to static content scripts grants access to their declared sites; no script is included in the default build. The notification-permission example does not send notifications. Request access directly in the click handler, not after asynchronous work. The generic permission helper accepts both permissions and origins; declare matching optional manifest entries before requesting either. Browser shortcuts can conflict with existing shortcuts or be reassigned by the user.
+
+`src/ui/components/` contains lightweight Svelte primitives: Button, Card, StatePanel, Status, SearchField, Toggle, Tabs and Dialog. Use native controls and native modal dialogs, accessible names and visible focus. Loading, empty and failure states are distinct; storage and settings load errors provide retry actions. The sample sidebar supports search.

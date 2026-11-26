@@ -29,7 +29,8 @@ class CopierTemplateTests(unittest.TestCase):
     def test_default_five_interfaces(self):
         output = self.render(project_name="Test Extension", project_slug="test-extension")
         flags = json.loads((output / "features.json").read_text())
-        self.assertTrue(all(flags.values()))
+        self.assertTrue(all(flags[key] for key in ('popup', 'sidebar', 'settings', 'pageContextMenu', 'toolbarContextMenu')))
+        self.assertFalse(any(flags[key] for key in ('keyboardShortcuts', 'toolbarBadge', 'optionalPermissions', 'contentScript')))
         self.assertTrue((output / '.copier-answers.yml').exists())
         self.assertTrue((output / 'AGENTS.md').exists())
         self.assertTrue((output / 'lefthook.yml').exists())
@@ -49,7 +50,9 @@ class CopierTemplateTests(unittest.TestCase):
         flags = json.loads((output / "features.json").read_text())
         self.assertEqual(flags, {
             "popup": True, "sidebar": False, "settings": False,
-            "pageContextMenu": False, "toolbarContextMenu": False
+            "pageContextMenu": False, "toolbarContextMenu": False,
+            "keyboardShortcuts": False, "toolbarBadge": False,
+            "optionalPermissions": False, "contentScript": False
         })
 
 
