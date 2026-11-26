@@ -6,11 +6,15 @@ export function connectDevReload(port: number): void {
       if (socket.readyState === WebSocket.OPEN) socket.send('ping');
     }, 20_000);
     socket.addEventListener('message', (event) => {
-      const plan = JSON.parse(event.data) as { kind: string; surfaces: string[] };
+      const plan = JSON.parse(event.data) as {
+        kind: string;
+        surfaces: string[];
+      };
       if (plan.kind === 'full') chrome.runtime.reload();
       else if (plan.kind === 'surfaces')
-        void chrome.runtime.sendMessage({ channel: 'dev-reload', surfaces: plan.surfaces }).catch(() => {});
-
+        void chrome.runtime
+          .sendMessage({ channel: 'dev-reload', surfaces: plan.surfaces })
+          .catch(() => {});
     });
     socket.addEventListener('close', () => {
       clearInterval(heartbeat);

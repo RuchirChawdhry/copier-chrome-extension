@@ -17,13 +17,26 @@ export const test = base.extend<{ extension: Extension }>({
       args: [`--disable-extensions-except=${dist}`, `--load-extension=${dist}`],
     });
     const events: { kind: string; context: string; message: string }[] = [];
-    const record = (kind: string, source: string, message: string) => events.push({ kind, context: source, message });
+    const record = (kind: string, source: string, message: string) =>
+      events.push({ kind, context: source, message });
     context.on('console', (message) => {
       if (['error', 'warning'].includes(message.type()))
-        record('console-' + message.type(), message.page() ? 'page' : 'worker-or-context', message.text());
+        record(
+          'console-' + message.type(),
+          message.page() ? 'page' : 'worker-or-context',
+          message.text(),
+        );
     });
-    context.on('weberror', (error) => record('exception', 'page', error.error().message));
-    context.on('requestfailed', (request) => record('request-failed', 'browser', request.failure()?.errorText ?? 'Request failed'));
+    context.on('weberror', (error) =>
+      record('exception', 'page', error.error().message),
+    );
+    context.on('requestfailed', (request) =>
+      record(
+        'request-failed',
+        'browser',
+        request.failure()?.errorText ?? 'Request failed',
+      ),
+    );
     try {
       await context.tracing.start({
         screenshots: true,
@@ -46,7 +59,10 @@ export const test = base.extend<{ extension: Extension }>({
         await context.tracing.stop({ path });
         const diagnostics = testInfo.outputPath('browser-events.json');
         await writeFile(diagnostics, JSON.stringify(events, null, 2));
-        await testInfo.attach('browser-events', { path: diagnostics, contentType: 'application/json' });
+        await testInfo.attach('browser-events', {
+          path: diagnostics,
+          contentType: 'application/json',
+        });
         await testInfo.attach('trace', {
           path,
           contentType: 'application/zip',

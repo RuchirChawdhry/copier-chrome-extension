@@ -1,10 +1,19 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from './fixture';
-const config = JSON.parse(readFileSync('extension.config.json', 'utf8')) as typeof import('../../extension.config.json');
 
-test('enabled extension pages mount and preferences persist', async ({ extension }) => {
+const config = JSON.parse(
+  readFileSync('extension.config.json', 'utf8'),
+) as typeof import('../../extension.config.json');
+
+test('enabled extension pages mount and preferences persist', async ({
+  extension,
+}) => {
   const page = await extension.context.newPage();
-  for (const [enabled, file] of [[config.popup, 'popup.html'], [config.sidebar, 'sidebar.html'], [config.settings, 'options.html']] as const) {
+  for (const [enabled, file] of [
+    [config.popup, 'popup.html'],
+    [config.sidebar, 'sidebar.html'],
+    [config.settings, 'options.html'],
+  ] as const) {
     if (!enabled) continue;
     await page.goto(extension.url(file));
     await expect(page.locator('[data-ready="true"]')).toBeVisible();

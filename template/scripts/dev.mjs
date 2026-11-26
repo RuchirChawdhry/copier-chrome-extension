@@ -49,10 +49,13 @@ async function rebuild() {
     previous = next;
     if (plan.kind !== 'none') {
       for (const client of server.clients) {
-        if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify(plan));
+        if (client.readyState === WebSocket.OPEN)
+          client.send(JSON.stringify(plan));
       }
     }
-    console.log('Development build ready; reload plan: ' + JSON.stringify(plan));
+    console.log(
+      'Development build ready; reload plan: ' + JSON.stringify(plan),
+    );
   } catch (error) {
     console.error(error.message, '— last successful build remains available.');
   } finally {

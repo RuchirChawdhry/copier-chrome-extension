@@ -14,9 +14,16 @@ const workerSource = 'src/background/index.ts';
 const original = await readFile(source, 'utf8');
 const originalWorker = await readFile(workerSource, 'utf8');
 const profile = await mkdtemp(join(tmpdir(), 'extension-reload-'));
-const server = spawn(process.execPath, ['scripts/dev.mjs'], { env: process.env, stdio: ['ignore', 'pipe', 'pipe'] });
+const server = spawn(process.execPath, ['scripts/dev.mjs'], {
+  env: process.env,
+  stdio: ['ignore', 'pipe', 'pipe'],
+});
 let output = '';
-for (const stream of [server.stdout, server.stderr]) stream.on('data', (data) => { output += data; process.stdout.write(data); });
+for (const stream of [server.stdout, server.stderr])
+  stream.on('data', (data) => {
+    output += data;
+    process.stdout.write(data);
+  });
 let context;
 async function waitFor(predicate, description, timeout = 60_000) {
   const deadline = Date.now() + timeout;
@@ -28,18 +35,33 @@ async function waitFor(predicate, description, timeout = 60_000) {
   throw new Error('Timed out: ' + description);
 }
 try {
-  await waitFor(() => output.includes('Development build ready'), 'initial build');
+  await waitFor(
+    () => output.includes('Development build ready'),
+    'initial build',
+  );
   const dist = resolve('dist');
-  context = await chromium.launchPersistentContext(profile, { channel: 'chromium', headless: true, args: ['--disable-extensions-except=' + dist, '--load-extension=' + dist] });
+  context = await chromium.launchPersistentContext(profile, {
+    channel: 'chromium',
+    headless: true,
+    args: ['--disable-extensions-except=' + dist, '--load-extension=' + dist],
+  });
   const manager = await context.newPage();
   await manager.goto('chrome://extensions/');
   const load = manager.getByRole('button', { name: 'Load unpacked' });
-  if (!(await load.isVisible())) { await manager.getByLabel('Developer mode').click(); await load.waitFor({ state: 'visible' }); }
+  if (!(await load.isVisible())) {
+    await manager.getByLabel('Developer mode').click();
+    await load.waitFor({ state: 'visible' });
+  }
   await manager.close();
-  const worker = context.serviceWorkers()[0] ?? await context.waitForEvent('serviceworker');
+  const worker =
+    context.serviceWorkers()[0] ??
+    (await context.waitForEvent('serviceworker'));
   const id = new URL(worker.url()).host;
   const url = 'chrome-extension://' + id + '/popup.html';
-  await waitFor(() => output.includes('Reload client connected'), 'worker connected');
+  await waitFor(
+    () => output.includes('Reload client connected'),
+    'worker connected',
+  );
   const page = await context.newPage();
   await page.goto(url);
   await page.locator('[data-ready="true"]').waitFor();
@@ -47,21 +69,42 @@ try {
   if (other) {
     await other.goto('chrome-extension://' + id + '/sidebar.html');
     await other.locator('[data-ready="true"]').waitFor();
-    await other.evaluate(() => { window.__reloadSentinel = true; });
+    await other.evaluate(() => {
+      window.__reloadSentinel = true;
+    });
   }
   let workerClosed = false;
-  worker.once('close', () => { workerClosed = true; });
+  worker.once('close', () => {
+    workerClosed = true;
+  });
   for (const marker of ['Selective reload one', 'Selective reload two']) {
-    await writeFile(source, original.replace('</main>', '<p>' + marker + '</p></main>'));
+    await writeFile(
+      source,
+      original.replace('</main>', '<p>' + marker + '</p></main>'),
+    );
     await page.getByText(marker, { exact: true }).waitFor({ timeout: 60_000 });
     assert(!workerClosed, 'UI edit must not reload worker');
-    if (other) assert(await other.evaluate(() => window.__reloadSentinel), 'Unchanged sidebar reloaded');
-    assert.deepEqual(await snapshot('dist'), await snapshot('.dev-dist'), 'Obsolete or stale assets remain');
+    if (other)
+      assert(
+        await other.evaluate(() => window.__reloadSentinel),
+        'Unchanged sidebar reloaded',
+      );
+    assert.deepEqual(
+      await snapshot('dist'),
+      await snapshot('.dev-dist'),
+      'Obsolete or stale assets remain',
+    );
     console.log('Verified selective interface reload: ' + marker);
   }
-  await writeFile(workerSource, originalWorker + '\nconsole.info("Full reload fixture");\n');
+  await writeFile(
+    workerSource,
+    originalWorker + '\nconsole.info("Full reload fixture");\n',
+  );
   await waitFor(() => workerClosed, 'full worker reload');
-  await waitFor(() => output.split('Reload client connected.').length > 2, 'worker reconnected');
+  await waitFor(
+    () => output.split('Reload client connected.').length > 2,
+    'worker reconnected',
+  );
   const reopened = await context.newPage();
   await reopened.goto(url);
   await reopened.getByText('Selective reload two', { exact: true }).waitFor();

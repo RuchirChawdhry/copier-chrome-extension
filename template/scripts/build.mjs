@@ -3,7 +3,12 @@ import { resolve } from 'node:path';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { build as esbuild } from 'esbuild';
 import { build as viteBuild } from 'vite';
-import { enabledSurfaces, loadConfig, makeManifest, safeBuildDirectory } from './config.mjs';
+import {
+  enabledSurfaces,
+  loadConfig,
+  makeManifest,
+  safeBuildDirectory,
+} from './config.mjs';
 
 const devPort = Number(process.env.EXTENSION_DEV_RELOAD_PORT ?? 0);
 const dev = devPort > 0;
