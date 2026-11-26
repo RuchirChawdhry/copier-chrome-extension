@@ -12,7 +12,7 @@ Install [Copier](https://copier.readthedocs.io/) and run:
 copier copy --vcs-ref=HEAD gh:RuchirChawdhry/copier-chrome-extension my-extension
 cd my-extension
 git init -b main
-pnpm install --frozen-lockfile
+pnpm run setup
 pnpm dev
 ```
 
@@ -20,7 +20,7 @@ Load the generated `dist/` folder as an unpacked extension in Chromium or Edge. 
 
 This repository's workflow template is nested under `template/` and will not run as a GitHub Action here. Generated projects include PR/manual validation using the shared Node CI workflow.
 
-The generated project includes placeholder PNG icons (16, 32, 48, 128 px), a development-only automatic reload server, staged formatting and import organization, an AGENTS.md, and committed Copier answers for subsequent `copier update --vcs-ref=HEAD` from a clean Git checkout.
+The generated project includes typed RPC, reactive validated storage, context-aware logging, automated light/dark screenshots and Playwright trace artifacts, unified setup/check commands, placeholder PNG icons (16, 32, 48, 128 px), a development-only automatic reload server, staged formatting and import organization, an AGENTS.md, and committed Copier answers for subsequent `copier update --vcs-ref=HEAD` from a clean Git checkout.
 
 ## Verification
 

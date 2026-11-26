@@ -70,6 +70,7 @@ for (const html of entryPoints) {
     configFile: false,
     base: './',
     plugins: [svelte()],
+    define: { __DEV__: JSON.stringify(dev) },
     build: {
       outDir: dist,
       emptyOutDir: false,
@@ -97,6 +98,7 @@ const workerConfig = {
   target: 'chrome116',
   define: {
     __FEATURES__: JSON.stringify(features),
+    __DEV__: JSON.stringify(dev),
     __DEV_RELOAD_PORT__: JSON.stringify(devPort),
   },
 };

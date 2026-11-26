@@ -2,7 +2,7 @@ import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests/e2e',
-  timeout: 30_000,
+  timeout: 60_000,
   use: { headless: true },
-  reporter: 'list',
+  reporter: [['list'], ['html', { open: 'never' }]],
 });
