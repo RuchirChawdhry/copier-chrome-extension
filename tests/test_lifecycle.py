@@ -53,7 +53,8 @@ class LifecycleTests(unittest.TestCase):
                     dest = Path(tmp) / str(i)
                     args = [part for flag, value in zip(FLAGS, values) for part in ("-d", f"include_{flag}={str(value).lower()}")]
                     copy(ROOT, dest, *args)
-                    self.assertEqual(json.loads((dest / "features.json").read_text()), dict(zip(KEYS, values)) | dict.fromkeys(('keyboardShortcuts', 'toolbarBadge', 'optionalPermissions', 'contentScript'), False))
+                    rendered = json.loads((dest / "extension.config.json").read_text())
+                    self.assertEqual({key: rendered[key] for key in KEYS}, dict(zip(KEYS, values)))
 
     def test_new_capability_combinations(self):
         flags = ("keyboard_shortcuts", "toolbar_badge", "optional_permissions", "content_script")
@@ -64,7 +65,7 @@ class LifecycleTests(unittest.TestCase):
                     dest = Path(tmp) / str(i)
                     args = [part for flag, value in zip(flags, values) for part in ("-d", f"include_{flag}={str(value).lower()}")]
                     copy(ROOT, dest, *args)
-                    rendered = json.loads((dest / "features.json").read_text())
+                    rendered = json.loads((dest / "extension.config.json").read_text())
                     self.assertEqual({key: rendered[key] for key in keys}, dict(zip(keys, values)))
 
     def test_input_validation_and_escaping(self):
@@ -114,12 +115,12 @@ class LifecycleTests(unittest.TestCase):
             run("copier", "update", "--defaults", "--vcs-ref=v0.2.0", cwd=project)
             self.assertIn("Keep this change.", readme.read_text())
             self.assertEqual((project / "local.txt").read_text(), "local content\n")
-            self.assertFalse(json.loads((project / "features.json").read_text())["sidebar"])
+            self.assertFalse(json.loads((project / "extension.config.json").read_text())["sidebar"])
             self.assertIn("test:reload", json.loads((project / "package.json").read_text())["scripts"])
             self.assertIn("v0.2.0", (project / ".copier-answers.yml").read_text())
             self.assertFalse(list(project.rglob("*.rej")))
             self.assertFalse((project / "src/core/items.ts").exists())
-            self.assertTrue((project / "src/example/items.ts").exists())
+            self.assertFalse((project / "src/example/items.ts").exists())
             self.assertIn("check", json.loads((project / "package.json").read_text())["scripts"])
 
 

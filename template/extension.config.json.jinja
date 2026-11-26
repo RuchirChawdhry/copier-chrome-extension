@@ -17,7 +17,9 @@
     "optional_host_permissions": [],
     "commands": {% if include_keyboard_shortcuts %}{
       "{{ 'save-active-page' if include_example else 'extension-action' }}": {
-        "suggested_key": { "default": "Alt+Shift+S" },
+        "suggested_key": {
+          "default": "Alt+Shift+S"
+        },
         "description": "{{ 'Save the active page' if include_example else 'Extension action' }}"
       }
     }{% else %}{}{% endif %}

@@ -1,0 +1,63 @@
+name: Generated extension platform validation
+on:
+  pull_request:
+  workflow_dispatch:
+  push:
+    branches: [phase-5-adaptability]
+permissions:
+  contents: read
+jobs:
+  platform:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-latest]
+        example: ['false', 'true']
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '22'
+      - run: python -m pip install copier==9.14.1
+      - run: copier copy --defaults --vcs-ref=HEAD -d include_example=${{ matrix.example }} . generated
+      - name: Setup and validate
+        working-directory: generated
+        run: |
+          git init -b main
+          corepack enable
+          env -u CI pnpm run setup
+          pnpm fix
+          pnpm check
+          pnpm build
+          pnpm verify:build
+          pnpm doctor
+          node -e 'const r=require("./reports/doctor.json"); if(r.checks.some(c=>c.name==="Git hooks"&&c.status!=="pass"))process.exit(1)'
+      - name: Install Linux browser libraries
+        if: runner.os == 'Linux'
+        working-directory: generated
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Browser and reload validation
+        working-directory: generated
+        run: |
+          pnpm exec playwright test
+          node -e 'const r=require("./reports/diagnostics.json"); if(r.status!=="passed"||!r.tests.length)process.exit(1)'
+          pnpm test:reload
+          pnpm build
+          pnpm verify:build
+          pnpm package
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: diagnostics-${{ matrix.os }}-example-${{ matrix.example }}
+          path: |
+            generated/reports/
+            generated/test-results/
+            generated/playwright-report/
+          if-no-files-found: ignore

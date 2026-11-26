@@ -20,7 +20,7 @@ await check('Node.js', () => {
   return process.version;
 });
 await check('pnpm', () => {
-  const version = command('pnpm', ['--version']);
+  const version = process.env.npm_execpath ? command(process.execPath, [process.env.npm_execpath, '--version']) : command('pnpm', ['--version']);
   if (version !== pkg.packageManager.split('@')[1]) throw new Error('Expected ' + pkg.packageManager + '; found ' + version);
   return version;
 });

@@ -1,0 +1,39 @@
+name: Normalize and validate generated profiles
+on:
+  push:
+    branches: [phase-5-adaptability]
+permissions:
+  contents: write
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '22'
+      - run: python -m pip install copier==9.14.1
+      - run: |
+          copier copy --defaults --vcs-ref=HEAD -d include_example=false . "$RUNNER_TEMP/clean"
+          copier copy --defaults --vcs-ref=HEAD -d include_example=true . "$RUNNER_TEMP/example"
+      - name: Format both profiles
+        run: |
+          corepack enable
+          for profile in clean example; do
+            cd "$RUNNER_TEMP/$profile"
+            pnpm install --frozen-lockfile
+            pnpm exec biome check --write --max-diagnostics=100 .
+            pnpm check
+            pnpm build
+            pnpm verify:build
+          done
+      - name: Synchronize formatted files
+        run: |
+          python tests/normalize_profiles.py "$RUNNER_TEMP/clean" "$RUNNER_TEMP/example"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add template
+          git diff --cached --quiet || git commit -m 'Normalize both generated profiles'
+          git push

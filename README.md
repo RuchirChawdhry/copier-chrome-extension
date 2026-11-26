@@ -2,7 +2,7 @@
 
 A Copier template for low-latency Chromium extensions using Manifest V3, TypeScript, Svelte 5, Vite, esbuild, pnpm, Vitest, Playwright, and Biome.
 
-Generated extensions include working examples of a toolbar popup, sidebar, settings page, webpage context menu, and toolbar-icon context menu. All five can be enabled or disabled through Copier prompts. UI entry points are independently compiled; the background worker is not required for first UI render.
+Generated extensions default to a clean starter with toolbar popup, sidebar, settings and menu scaffolding. Pass `-d include_example=true` for the saved-link demonstration. All five can be enabled or disabled through Copier prompts. UI entry points are independently compiled; the background worker is not required for first UI render.
 
 ## Generate
 
@@ -32,10 +32,14 @@ Use `pnpm bench` for extension-page navigation-to-Svelte-mount measurements. For
 
 `VERSION` is the template version, independent of generated package.json versions. A change to VERSION on main triggers a validated GitHub Release with a matching vMAJOR.MINOR.PATCH tag. Manual release workflow runs default to a dry run; explicitly choose publish only on main for a new version. Use `copier copy` / `copier update` to consume stable tags, or `--vcs-ref=HEAD` for unreleased changes. Review Copier conflicts before committing.
 
-Every release includes a source archive, a generated example extension ZIP, SHA256SUMS.txt and measured JSON reports. No browser-store publishing credentials are required.
+Every release includes a source archive, a generated starter extension ZIP, SHA256SUMS.txt and measured JSON reports. No browser-store publishing credentials are required.
 
 ## Dependency automation
 
 The template's Jinja package manifest is not a native npm manifest. A weekly workflow renders the template, refreshes the lockfile within declared ranges, verifies the manifest is unchanged, frozen-installs, runs checks and browser tests, and proposes a lockfile-only PR. Enable the repository setting allowing GitHub Actions to create pull requests if disabled; without it a validated update branch and artifact remain available for review. Major dependency range changes remain explicit. Generated projects use weekly Dependabot npm and GitHub Actions updates.
 
 The template runs validation on pull requests and manual requests, releases on VERSION changes, and a scheduled dependency refresh. Ordinary pushes that do not change VERSION do not start generated-project CI.
+
+## Configuration and diagnostics
+
+Edit `extension.config.json` to declare feature flags, manifest permission lists, commands and bundled content scripts. `pnpm doctor` checks prerequisites; `reports/diagnostics.json` summarizes browser test results. UI-only development builds refresh affected pages and remove stale assets; worker or manifest changes reload the extension. Validation includes Windows and Linux.
