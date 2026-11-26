@@ -58,6 +58,19 @@ jobs:
           pnpm verify:build
           cp "$GITHUB_WORKSPACE/tests/ui-design.spec.ts" tests/e2e/ui-design.spec.ts
           pnpm exec playwright test screenshots.spec.ts ui-design.spec.ts
+      - name: Capture native browser context menus
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb xdotool scrot openbox python3-pyatspi at-spi2-core dbus-x11
+          cd "$RUNNER_TEMP/extension"
+          cp "$GITHUB_WORKSPACE/tests/capture-native-menus.mjs" scripts/
+          cp "$GITHUB_WORKSPACE/tests/native-menu-ui.py" scripts/
+          xvfb-run -a -s "-screen 0 1280x800x24" dbus-run-session -- bash -c '
+            export NO_AT_BRIDGE=0 ACCESSIBILITY_ENABLED=1
+            gsettings set org.gnome.desktop.interface toolkit-accessibility true || true
+            openbox >/tmp/screenshot-openbox.log 2>&1 &
+            node scripts/capture-native-menus.mjs
+          '
       - name: Upload screenshots
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
@@ -109,13 +122,19 @@ jobs:
                       for surface, size in sizes.items()
                       for theme in ("light", "dark")}
           for profile in ("clean", "demo"):
+              native = ["page", "toolbar"] + (["link"] if profile == "demo" else [])
+              expected = {f"{surface}-{theme}.png": size
+                          for surface, size in sizes.items()
+                          for theme in ("light", "dark")}
+              expected.update({f"context-menu-{surface}-{theme}.png": (1280, 800)
+                               for surface in native for theme in ("light", "dark")})
               files = list((root / profile).iterdir())
               assert {p.name for p in files} == expected.keys(), f"Incomplete capture: {profile}"
               for path in files:
                   data = path.read_bytes()
                   assert data[:8] == b"\x89PNG\r\n\x1a\n" and data[12:16] == b"IHDR", path
                   assert struct.unpack(">II", data[16:24]) == expected[path.name], path
-          print("Verified all 16 PNG screenshots and dimensions")
+          print("Verified all 26 PNG screenshots and dimensions")
           PY
       - name: Replace repository screenshots
         run: |
@@ -136,4 +155,4 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m "Refresh extension screenshots"
           git push origin HEAD:main
-          echo "Published 16 screenshots to screenshots/ (clean and demo)." >> "$GITHUB_STEP_SUMMARY"
+          echo "Published 26 screenshots to screenshots/ (clean and demo)." >> "$GITHUB_STEP_SUMMARY"
