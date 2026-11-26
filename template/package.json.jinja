@@ -14,17 +14,18 @@
     "fix": "biome check --write .",
     "build": "node scripts/build.mjs",
     "typecheck": "svelte-check --tsconfig ./tsconfig.json",
-    "lint": "biome lint .",
+    "lint": "biome check .",
     "format": "biome format --write .",
     "test": "vitest run",
     "test:e2e": "pnpm build && playwright test",
+    "test:reload": "node scripts/test-reload.mjs",
     "bench": "pnpm build && node scripts/bench.mjs",
     "verify:build": "node scripts/verify-build.mjs",
     "package": "pnpm build && node scripts/package.mjs"
   },
   "pnpm": { "onlyBuiltDependencies": ["esbuild", "lefthook"] },
   "lint-staged": {
-    "*.{ts,js,mjs,svelte,css,json}": "biome check --write --no-errors-on-unmatched"
+    "*.{ts,js,mjs,svelte,css,json,html}": "biome check --write --no-errors-on-unmatched"
   },
   "dependencies": {
     "svelte": "^5.0.0"

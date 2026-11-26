@@ -12,6 +12,7 @@ server.on('error', (error) => {
   process.exit(1);
 });
 await new Promise((resolve) => server.once('listening', resolve));
+server.on('connection', () => console.log('Reload client connected.'));
 const staging = '.dev-dist';
 let running = false;
 let queued = false;
