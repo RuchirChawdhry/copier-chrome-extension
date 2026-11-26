@@ -9,6 +9,9 @@ Generated with [copier-chrome-extension](https://github.com/RuchirChawdhry/copie
 Requires Node.js 22.12+ and pnpm 10. Initialize Git and install the locked dependencies with `git init -b main` (new projects only) and `pnpm install --frozen-lockfile`. The install automatically enables Lefthook in a Git checkout; use `pnpm hooks:install` if Git was initialized afterwards.
 
 ```sh
+pnpm run setup     # Frozen install, Git hooks, bundled Chromium
+pnpm check         # Typecheck, formatting/lint and unit tests
+pnpm screenshots   # Capture light/dark screenshots of enabled surfaces
 pnpm dev           # Rebuild and reload the unpacked extension on changes
 pnpm build         # Build unpacked extension to dist/
 pnpm typecheck     # Svelte and TypeScript validation
@@ -34,13 +37,13 @@ The pre-commit hook runs lint-staged and Biome only on staged supported files; i
 
 The template supports a toolbar popup, persistent sidebar, full-page settings, webpage right-click actions, and toolbar-icon right-click actions. They are controlled in `features.json`. Edit flags and rebuild to change which surfaces are packaged; edit the corresponding Svelte components to build your own product.
 
-The packaged popup, sidebar, and settings have isolated JS/CSS bundles, without additional lazy imports on their first render. The service worker is not needed to display the UI. The sample saves links to `chrome.storage.local` through a serialized worker command handler, and the sidebar subscribes to changes.
+The packaged popup, sidebar, and settings have isolated JS/CSS bundles, without additional lazy imports on their first render. The service worker is not needed to display the UI. The saved-link example lives in `src/example/`; the popup and sidebar subscribe directly to validated storage events without waking the worker.
 
 Context menus are registered on install and the toolbar context menu remains browser-native. Opera's older sidebar API is not presumed compatible with MV3; test Opera separately before distributing.
 
 Only the broad permissions needed by the enabled features are generated. Add host permissions or content scripts explicitly when your extension needs them. The initial sample does not inject scripts into webpages.
 
-The PR-only GitHub Actions workflow is included in generated projects, not active in the Copier template repository. The generated CI calls the pinned reusable Node workflow from ci-workflows and validates the packaged extension in Playwright.
+The PR-only GitHub Actions workflow is included in generated projects, not active in the Copier template repository. The generated CI calls the pinned reusable Node workflow from ci-workflows and validates the packaged extension in Playwright. It uploads browser diagnostics even on failure.
 
 ## Chrome and Edge compatibility benchmark
 
@@ -73,3 +76,21 @@ pnpm bench
 The script measures first and repeat **navigation-to-Svelte-mounted UI** for popup/sidebar/settings pages, not physical toolbar-click latency or side-panel opening latency. Measurements from CDP-attached browsers are useful for comparative diagnostics, but do not replace manual checks of toolbar behavior, context menus, page transitions, and native panel rendering.
 
 Only attach to browser instances and debugging ports you control. Close the debugging browser after the measurements.
+
+## Reusable core and example
+
+- `src/core/`: generic typed RPC client/router, validated storage, reactive Svelte store, serialization queue, logger and appearance preferences.
+- `src/example/`: saved-link domain, RPC contract, storage schema, handlers and menu actions. Replace this folder and the sample UI behavior with your product.
+- `src/background/index.ts`: synchronous worker wiring. Register your routes and menu listeners here.
+
+RPC uses a typed contract, e.g. `await send('items.list', null)` returns saved items. Define input/output pairs, register validated routes, and pass JSON-serializable values. Use `route` to validate incoming requests; the client rejects error responses. No initial UI rendering depends on RPC.
+
+Use `createStorage` with typed defaults and runtime validators. `get`, `set`, `subscribe`, and `observe` are key-specific; `observe` delivers the initial value and subsequent events without redundant reads. Invalid/missing values fall back to defaults. Subscribe via `watchStorage` for a Svelte-readable store. Use the queue for read-modify-write mutations in the worker; direct writes to independent preferences are fine. The existing `savedItems` and `appearance` storage keys are preserved.
+
+Use `createLogger('popup')` (or another context). Debug/info output is development-only; warnings/errors remain in production. Avoid logging private data.
+
+## Browser diagnostics
+
+Run `pnpm screenshots` for predictable light/dark PNGs in `reports/screenshots/`. `pnpm test:e2e` captures the same screenshots, traces for persistent browser contexts in `test-results/`, and an HTML report in `playwright-report/`. View a trace with `pnpm exec playwright show-trace path/to/trace.zip`. CI uploads these files as `chromium-diagnostics` even on failed tests. Screenshots are extension-page renderings at fixed viewports, not browser chrome or native toolbar panels. Fixture data is synthetic; review traces before sharing if you add tests with real data.
+
+Run `pnpm run setup` explicitly: `pnpm setup` is a pnpm built-in. Initialize Git before setup to install hooks automatically. On Linux, if browser libraries are missing, run `pnpm exec playwright install --with-deps chromium`.

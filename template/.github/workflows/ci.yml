@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   validate:
-    uses: RuchirChawdhry/ci-workflows/.github/workflows/node-ci.yml@f466464ed35ef956bfb4cba15e8c66efc9fb5b69
+    uses: RuchirChawdhry/ci-workflows/.github/workflows/node-ci.yml@a3a3790db090a416409edf543e781652b686c1fb
     with:
       node-version: '22'
       package-manager: pnpm
@@ -19,3 +19,9 @@ jobs:
         corepack pnpm exec playwright test
       artifact-path: dist/
       artifact-name: chromium-extension
+
+      diagnostics-path: |
+        reports/screenshots/
+        test-results/
+        playwright-report/
+      diagnostics-name: chromium-diagnostics

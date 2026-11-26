@@ -1,31 +1,22 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { sendCommand } from '../../core/client';
-  import type { SavedItem } from '../../core/items';
-  import { getItems, subscribeToItems } from '../../core/storage';
+  import { createLogger, errorMessage } from '../../core/logger';
+  import { watchStorage } from '../../core/reactive-storage';
+  import { send } from '../../example/messages';
+  import { exampleStorage } from '../../example/storage';
 
-  let items = $state<SavedItem[]>([]);
+  const logger = createLogger('sidebar');
+  const items = watchStorage(exampleStorage.defaultValue('savedItems'), (update, fail) => exampleStorage.observe('savedItems', update, fail));
   let error = $state('');
 
   const title = chrome.runtime.getManifest().name;
 
-  async function refresh() {
-    items = await getItems();
-  }
-
-  onMount(() => {
-    void refresh();
-    return subscribeToItems(() => {
-      void refresh();
-    });
-  });
-
   async function remove(id: string) {
     error = '';
     try {
-      await sendCommand({ type: 'items.remove', id });
+      await send('items.remove', { id });
     } catch (cause) {
-      error = cause instanceof Error ? cause.message : String(cause);
+      logger.warn('Remove failed');
+      error = errorMessage(cause);
     }
   }
 </script>
@@ -33,16 +24,18 @@
 <main data-ready="true">
   <div class="header">
     <h1>{title}</h1>
-    <span class="count">{items.length}</span>
+    <span class="count">{$items.value.length}</span>
   </div>
   <p class="muted">
     A lightweight sidebar workspace. Replace this sample list with your
     product's domain.
   </p>
-  {#if error}
-    <p role="alert" class="error">{error}</p>
+  {#if error || $items.error}
+    <p role="alert" class="error">{error || $items.error}</p>
   {/if}
-  {#if !items.length}
+  {#if !$items.ready && !$items.error}
+    <p class="muted">Loading saved items…</p>
+  {:else if !$items.value.length}
     <section class="card">
       <p>
         Nothing saved yet. Right-click a webpage or use the toolbar popup to add
@@ -51,7 +44,7 @@
     </section>
   {:else}
     <ul class="list">
-      {#each items as item (item.id)}
+      {#each $items.value as item (item.id)}
         <li>
           <div class="item-content">
             <a

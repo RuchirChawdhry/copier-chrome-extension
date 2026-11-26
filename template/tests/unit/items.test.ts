@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addItem, removeItem } from '../../src/core/items';
+import { addItem, removeItem } from '../../src/example/items';
 
 describe('saved item operations', () => {
   const sample = { url: 'https://example.com/watch?v=1', title: 'Example' };

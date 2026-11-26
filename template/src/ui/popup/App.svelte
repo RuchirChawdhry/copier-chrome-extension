@@ -1,11 +1,13 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import features from '../../../features.json';
-  import { sendCommand } from '../../core/client';
-  import type { SavedItem } from '../../core/items';
-  import { getItems, subscribeToItems } from '../../core/storage';
+  import { createLogger, errorMessage } from '../../core/logger';
+  import { watchStorage } from '../../core/reactive-storage';
+  import { send } from '../../example/messages';
+  import { exampleStorage } from '../../example/storage';
 
-  let items = $state<SavedItem[]>([]);
+  const logger = createLogger('popup');
+  const items = watchStorage(exampleStorage.defaultValue('savedItems'), (update, fail) => exampleStorage.observe('savedItems', update, fail));
   let tab = $state<chrome.tabs.Tab | null>(null);
   let windowId = $state<number | null>(null);
   let busy = $state(false);
@@ -13,21 +15,13 @@
 
   const title = chrome.runtime.getManifest().name;
 
-  async function refresh() {
-    items = await getItems();
-  }
-
   onMount(() => {
-    void refresh();
     void chrome.tabs
       .query({ active: true, currentWindow: true })
       .then((tabs) => {
         tab = tabs[0] ?? null;
         windowId = tab?.windowId ?? null;
-      });
-    return subscribeToItems(() => {
-      void refresh();
-    });
+      }).catch(() => { logger.warn('Active tab lookup failed'); });
   });
 
   async function saveCurrent() {
@@ -35,10 +29,10 @@
     busy = true;
     error = '';
     try {
-      await sendCommand({ type: 'items.add', url: tab.url, title: tab.title });
-      await refresh();
+      await send('items.add', { url: tab.url, title: tab.title });
     } catch (cause) {
-      error = cause instanceof Error ? cause.message : String(cause);
+      logger.warn('Save failed');
+      error = errorMessage(cause);
     } finally {
       busy = false;
     }
@@ -57,7 +51,7 @@
 <main data-ready="true">
   <div class="header">
     <h1>{title}</h1>
-    <span class="count">{items.length} saved</span>
+    <span class="count">{$items.value.length} saved</span>
   </div>
   <p class="muted">Quick actions, right where you need them.</p>
   <div class="actions">
@@ -75,19 +69,19 @@
       </button>
     {/if}
     {#if features.settings}
-      <button type="button" onclick={() => chrome.runtime.openOptionsPage()}>
+      <button type="button" onclick={() => { void chrome.runtime.openOptionsPage().catch(() => logger.error('Unable to open settings')); }}>
         Settings
       </button>
     {/if}
   </div>
-  {#if error}
-    <p role="alert" class="error">{error}</p>
+  {#if error || $items.error}
+    <p role="alert" class="error">{error || $items.error}</p>
   {/if}
-  {#if items.length}
+  {#if $items.value.length}
     <section class="card">
       <strong class="muted">Recently saved</strong>
       <ul class="list">
-        {#each items.slice(0, 3) as item (item.id)}
+        {#each $items.value.slice(0, 3) as item (item.id)}
           <li>
             <a
               class="truncate"
