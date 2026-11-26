@@ -1,8 +1,6 @@
 name: Validate Copier changes
 on:
   pull_request:
-  push:
-    branches: [phase-5-adaptability]
   workflow_dispatch:
 permissions:
   contents: read

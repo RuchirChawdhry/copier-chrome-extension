@@ -2,8 +2,6 @@ name: Generated extension platform validation
 on:
   pull_request:
   workflow_dispatch:
-  push:
-    branches: [phase-5-adaptability]
 permissions:
   contents: read
 jobs:
@@ -70,7 +68,8 @@ jobs:
       - name: Verify all optional capabilities with real Copier generation
         if: runner.os == 'Linux' && matrix.example == 'true'
         run: |
-          copier copy --defaults --vcs-ref=HEAD -d include_example=true -d include_keyboard_shortcuts=true -d include_toolbar_badge=true -d include_optional_permissions=true -d include_content_script=true . "$RUNNER_TEMP/all-capabilities"
+          git clone --no-hardlinks . "$RUNNER_TEMP/template"
+          copier copy --defaults --vcs-ref=HEAD -d include_example=true -d include_keyboard_shortcuts=true -d include_toolbar_badge=true -d include_optional_permissions=true -d include_content_script=true "$RUNNER_TEMP/template" "$RUNNER_TEMP/all-capabilities"
           cd "$RUNNER_TEMP/all-capabilities"
           pnpm install --frozen-lockfile
           pnpm check
