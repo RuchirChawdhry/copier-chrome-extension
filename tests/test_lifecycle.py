@@ -65,11 +65,11 @@ class LifecycleTests(unittest.TestCase):
             self.assertEqual(package["name"], "pdf-image-tools")
             self.assertEqual(package["extensionName"], name)
             self.assertEqual(package["description"], description)
-            for filename, suffix in (("popup.html", "Popup"), ("sidebar.html", "Sidebar"), ("options.html", "Settings")):
+            for filename, suffix in (("popup.html", ""), ("sidebar.html", "Sidebar"), ("options.html", "Settings")):
                 parser = TitleParser()
                 html = (dest / filename).read_text()
                 parser.feed(html)
-                self.assertEqual(parser.title, f"{name} · {suffix}")
+                self.assertEqual(parser.title, f"{name} · {suffix}" if suffix else name)
                 self.assertNotIn("<Image>", html)
             for i, data in enumerate(("project_slug=bad/name", "project_slug=UPPER", "project_name=", "project_description=" + "x" * 133)):
                 result = copy(ROOT, Path(tmp) / f"invalid-{i}", "-d", data, check=False)
