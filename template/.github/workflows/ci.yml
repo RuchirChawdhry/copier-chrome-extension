@@ -17,11 +17,13 @@ jobs:
         corepack pnpm verify:build
         corepack pnpm exec playwright install --with-deps chromium
         corepack pnpm exec playwright test
+        node scripts/report-size.mjs
       artifact-path: dist/
       artifact-name: chromium-extension
 
       diagnostics-path: |
         reports/screenshots/
+        reports/bundle-size.json
         test-results/
         playwright-report/
       diagnostics-name: chromium-diagnostics

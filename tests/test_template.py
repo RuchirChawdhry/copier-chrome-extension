@@ -15,7 +15,7 @@ class CopierTemplateTests(unittest.TestCase):
     def render(self, **answers: str) -> Path:
         directory = Path(self.addCleanup_temp_dir())
         output = directory / "extension"
-        command = ["copier", "copy", "--defaults", "--trust", str(ROOT), str(output)]
+        command = ["copier", "copy", "--defaults", "--vcs-ref=HEAD", str(ROOT), str(output)]
         for key, value in answers.items():
             command.extend(["-d", f"{key}={value}"])
         subprocess.run(command, check=True, capture_output=True, text=True)

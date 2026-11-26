@@ -9,7 +9,7 @@ Generated extensions include working examples of a toolbar popup, sidebar, setti
 Install [Copier](https://copier.readthedocs.io/) and run:
 
 ```sh
-copier copy --vcs-ref=HEAD gh:RuchirChawdhry/copier-chrome-extension my-extension
+copier copy gh:RuchirChawdhry/copier-chrome-extension my-extension
 cd my-extension
 git init -b main
 pnpm run setup
@@ -18,9 +18,9 @@ pnpm dev
 
 Load the generated `dist/` folder as an unpacked extension in Chromium or Edge. See the generated README for available tests, benchmarks, and commands.
 
-This repository's workflow template is nested under `template/` and will not run as a GitHub Action here. Generated projects include PR/manual validation using the shared Node CI workflow.
+Generated projects include PR/manual validation and tag-based release publishing through ci-workflows. The template itself uses a version-change release trigger and weekly dependency refresh.
 
-The generated project includes typed RPC, reactive validated storage, context-aware logging, automated light/dark screenshots and Playwright trace artifacts, unified setup/check commands, placeholder PNG icons (16, 32, 48, 128 px), a development-only automatic reload server, staged formatting and import organization, an AGENTS.md, and committed Copier answers for subsequent `copier update --vcs-ref=HEAD` from a clean Git checkout.
+The generated project includes typed RPC, reactive validated storage, context-aware logging, automated light/dark screenshots and Playwright trace artifacts, unified setup/check commands, placeholder PNG icons (16, 32, 48, 128 px), a development-only automatic reload server, staged formatting and import organization, an AGENTS.md, and committed Copier answers for subsequent `copier update` from a clean Git checkout.
 
 ## Verification
 
@@ -28,4 +28,14 @@ The generated project provides `pnpm verify:build` to check Manifest V3, selecte
 
 Use `pnpm bench` for extension-page navigation-to-Svelte-mount measurements. For real installed Chrome and Edge builds, connect to their CDP debugging profiles with `node scripts/bench.mjs --cdp=... --extension-id=...` (details in the generated README). These are **not** physical toolbar-click benchmarks.
 
-This source repository keeps generated CI under `template/.github/workflows`, so it has no active GitHub Actions workflows.
+## Versioned releases
+
+`VERSION` is the template version, independent of generated package.json versions. A change to VERSION on main triggers a validated GitHub Release with a matching vMAJOR.MINOR.PATCH tag. Manual release workflow runs default to a dry run; explicitly choose publish only on main for a new version. Use `copier copy` / `copier update` to consume stable tags, or `--vcs-ref=HEAD` for unreleased changes. Review Copier conflicts before committing.
+
+Every release includes a source archive, a generated example extension ZIP, SHA256SUMS.txt and measured JSON reports. No browser-store publishing credentials are required.
+
+## Dependency automation
+
+The template's Jinja package manifest is not a native npm manifest. A weekly workflow renders the template, refreshes the lockfile within declared ranges, verifies the manifest is unchanged, frozen-installs, runs checks and browser tests, and proposes a lockfile-only PR. Enable the repository setting allowing GitHub Actions to create pull requests if disabled; without it a validated update branch and artifact remain available for review. Major dependency range changes remain explicit. Generated projects use weekly Dependabot npm and GitHub Actions updates.
+
+The template runs validation on pull requests and manual requests, releases on VERSION changes, and a scheduled dependency refresh. Ordinary pushes that do not change VERSION do not start generated-project CI.

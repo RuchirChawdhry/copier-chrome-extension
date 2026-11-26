@@ -20,9 +20,10 @@ pnpm fix           # Format, organize imports and apply safe fixes
 pnpm test          # Vitest unit tests
 pnpm test:e2e      # Playwright using bundled Chromium
 pnpm test:reload   # Real development reload test (disposable project)
-pnpm bench         # Chromium navigation-to-Svelte-mount benchmark
+pnpm bench         # Browser mount and data-ready benchmark
+pnpm report:size   # Production asset sizes (raw and gzip)
 pnpm verify:build # Check packaged manifest, assets, and surface flags
-pnpm package       # Cross-platform ZIP output
+pnpm package       # Verified ZIP and SHA-256 in release/
 ```
 
 Visit `chrome://extensions`, enable Developer mode, then choose **Load unpacked** and select the generated `dist/` directory. For Edge use `edge://extensions`.
@@ -31,7 +32,7 @@ Visit `chrome://extensions`, enable Developer mode, then choose **Load unpacked*
 
 Run `pnpm dev`, enable Developer mode in the browser extensions page, and load `dist/` once. Keep Developer mode enabled: recent Chromium versions can disable unpacked extensions on reload otherwise. Successful rebuilds notify the development-only service worker over a loopback WebSocket; it reloads the extension. Popups may close during reload and must be reopened. If the dev server was stopped long enough for the worker to become dormant, reload the unpacked extension once after restarting it. The automated reload test uses a disposable Chromium profile with Developer mode enabled; it does not touch your browser profile. Run it only in a disposable, freshly generated project with the sample popup enabled, and stop any existing dev server first. It temporarily edits the sample popup, restores its source, and leaves a development build in dist/. Run pnpm build afterwards if production output is needed. Failed builds do not replace the last successful output. For parallel projects, set `EXTENSION_DEV_RELOAD_PORT` to a different port and reload each unpacked extension once after changing ports. Run `pnpm build` or `pnpm package` for production output without the reload client. Do not run production and development builds concurrently.
 
-The pre-commit hook runs lint-staged and Biome only on staged supported files; it formats and organizes imports and preserves unstaged edits. Commit `.copier-answers.yml` and `pnpm-lock.yaml`. From a clean committed Git working tree, run `copier update --vcs-ref=HEAD`, review changes/conflicts, then run `pnpm install --frozen-lockfile` (regenerate the lockfile if you changed dependencies). Projects generated before answers-file support require manual migration.
+The pre-commit hook runs lint-staged and Biome only on staged supported files; it formats and organizes imports and preserves unstaged edits. Commit `.copier-answers.yml` and `pnpm-lock.yaml`. From a clean committed Git working tree, run `copier update`, review changes/conflicts, then run `pnpm install --frozen-lockfile` (regenerate the lockfile if you changed dependencies). Projects generated before answers-file support require manual migration.
 
 ## Interfaces
 
@@ -43,7 +44,7 @@ Context menus are registered on install and the toolbar context menu remains bro
 
 Only the broad permissions needed by the enabled features are generated. Add host permissions or content scripts explicitly when your extension needs them. The initial sample does not inject scripts into webpages.
 
-The PR-only GitHub Actions workflow is included in generated projects, not active in the Copier template repository. The generated CI calls the pinned reusable Node workflow from ci-workflows and validates the packaged extension in Playwright. It uploads browser diagnostics even on failure.
+The generated PR/manual CI workflow validates the extension; the release workflow publishes only matching version tags. The generated CI calls the pinned reusable Node workflow from ci-workflows and validates the packaged extension in Playwright. It uploads browser diagnostics even on failure.
 
 ## Chrome and Edge compatibility benchmark
 
@@ -73,7 +74,7 @@ To benchmark the bundled Playwright Chromium without connecting to a browser:
 pnpm bench
 ```
 
-The script measures first and repeat **navigation-to-Svelte-mounted UI** for popup/sidebar/settings pages, not physical toolbar-click latency or side-panel opening latency. Measurements from CDP-attached browsers are useful for comparative diagnostics, but do not replace manual checks of toolbar behavior, context menus, page transitions, and native panel rendering.
+The script measures first and repeat **navigation-to-DOM-mount and initial data readiness** for popup/sidebar/settings pages, not physical toolbar-click latency or side-panel opening latency. Measurements from CDP-attached browsers are useful for comparative diagnostics, but do not replace manual checks of toolbar behavior, context menus, page transitions, and native panel rendering.
 
 Only attach to browser instances and debugging ports you control. Close the debugging browser after the measurements.
 
@@ -109,3 +110,11 @@ All four new flags default to false. Choose them during Copier generation or cha
 Change the sample content-script match in `scripts/build.mjs` and its verification test before using it in a real product. Opting in to static content scripts grants access to their declared sites; no script is included in the default build. The notification-permission example does not send notifications. Request access directly in the click handler, not after asynchronous work. The generic permission helper accepts both permissions and origins; declare matching optional manifest entries before requesting either. Browser shortcuts can conflict with existing shortcuts or be reassigned by the user.
 
 `src/ui/components/` contains lightweight Svelte primitives: Button, Card, StatePanel, Status, SearchField, Toggle, Tabs and Dialog. Use native controls and native modal dialogs, accessible names and visible focus. Loading, empty and failure states are distinct; storage and settings load errors provide retry actions. The sample sidebar supports search and toggling link addresses. When optional browser capabilities and Settings are enabled, screenshots also include the Browser settings tab in both themes.
+
+## Releases and performance
+
+Set the stable three-part version in package.json, commit, and push a matching tag (for example `v0.2.0`). The centralized release pipeline validates the exact tagged commit, builds and verifies the ZIP, runs browser tests, measures performance and publishes a GitHub Release with the ZIP, checksums and JSON reports. Manual workflow runs on a branch produce artifacts without publishing. Publishing does not submit to browser stores.
+
+Use `pnpm bench` for `reports/performance.json` (21 navigations per enabled surface by default, first and subsequent p50/p95 separately), and `pnpm report:size` for `reports/bundle-size.json` (file-level and surface sizes, raw and gzip). Initial data-ready markers are defined by each sample UI; update them when replacing product functionality. Keep comparisons on comparable browsers, runners and feature sets. No latency thresholds are enforced. CI uploads the bundle report; releases retain both reports. The benchmark cannot measure physical toolbar clicks or native panel animation.
+
+Dependabot proposes npm/pnpm and GitHub Actions updates weekly. Review and validate updates before merging. Never commit manually edited lockfile entries.

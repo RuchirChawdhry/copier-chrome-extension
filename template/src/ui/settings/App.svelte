@@ -135,7 +135,7 @@
   >
 {/snippet}
 
-<main data-ready="true">
+<main data-ready="true" data-data-ready={ready}>
   <h1>{title} · Settings</h1>
   <p>
     Preferences for your extension. This page is independent from the popup and
