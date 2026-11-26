@@ -1,6 +1,7 @@
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { chromium, expect, test } from '@playwright/test';
-import features from '../../features.json';
+const features = JSON.parse(readFileSync(resolve('features.json'), 'utf8')) as typeof import('../../features.json');
 
 test('the generated extension loads its configured surfaces', async () => {
   const dist = resolve('dist');
