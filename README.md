@@ -43,3 +43,7 @@ The template runs validation on pull requests and manual requests, releases on V
 ## Configuration and diagnostics
 
 Edit `extension.config.json` to declare feature flags, manifest permission lists, commands and bundled content scripts. `pnpm run doctor` checks prerequisites; `reports/diagnostics.json` summarizes browser test results. UI-only development builds refresh affected pages and remove stale assets; worker or manifest changes reload the extension. Validation includes Windows and Linux. Both the template and generated projects enforce LF line endings through Git attributes.
+
+## Screenshots
+
+Browse [`screenshots/`](screenshots/) for the clean starter and saved-link demonstration, captured with all optional capabilities enabled. Both profiles include light and dark images of the popup, sidebar, General settings and Browser settings. Run **Actions → Refresh screenshots → Run workflow** on `main` to regenerate the gallery. The workflow replaces the entire generated screenshot directory only after both captures pass validation; it does not append dated images. Captures show actual rendered extension pages in Playwright Chromium, not native browser toolbar, menu or permission-prompt chrome.
