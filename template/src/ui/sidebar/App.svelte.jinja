@@ -6,6 +6,7 @@
   import Button from '../components/Button.svelte';
   import SearchField from '../components/SearchField.svelte';
   import StatePanel from '../components/StatePanel.svelte';
+  import Surface from '../components/Surface.svelte';
   import Toggle from '../components/Toggle.svelte';
 
   const logger = createLogger('sidebar');
@@ -45,15 +46,13 @@
   }
 </script>
 
-<main data-ready="true" data-data-ready={$items.ready}>
-  <div class="header">
-    <h1>{title}</h1>
-    <span class="count">{$items.ready ? $items.value.length : '—'}</span>
-  </div>
-  <p class="muted">
-    A lightweight sidebar workspace. Replace this sample list with your
-    product's domain.
-  </p>
+<Surface
+  {title}
+  label="Workspace"
+  description="Find and manage saved links."
+  ready={$items.ready}
+  badge={String($items.ready ? $items.value.length : '—')}
+>
   {#if error}
     <StatePanel kind="error" message={error} />
   {/if}
@@ -78,12 +77,14 @@
     {#if !filtered.length}
       <StatePanel kind="empty" message="No matching links." />
     {/if}
-    <ul class="list">
+    <ul
+      class="divide-y divide-border rounded-lg border border-border bg-card p-3"
+    >
       {#each filtered as item (item.id)}
-        <li>
-          <div class="item-content">
+        <li class="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
+          <div class="min-w-0 flex-1">
             <a
-              class="truncate"
+              class="block truncate text-sm font-medium text-foreground hover:text-primary"
               href={item.url}
               target="_blank"
               rel="noreferrer"
@@ -91,10 +92,13 @@
               >{item.title}</a
             >
             {#if showUrls}
-              <span class="muted truncate">{item.url}</span>
+              <span class="block truncate text-xs text-muted-foreground"
+                >{item.url}</span
+              >
             {/if}
           </div>
           <Button
+            class="shrink-0 text-xs"
             busy={removing === item.id}
             disabled={removing !== null}
             aria-label={'Remove ' + item.title}
@@ -106,12 +110,18 @@
       {/each}
     </ul>
   {/if}
-</main>
+</Surface>
 {% endraw %}{% else %}{% raw %}<script lang="ts">
+  import Surface from '../components/Surface.svelte';
+
   const title = chrome.runtime.getManifest().name;
 </script>
 
-<main data-ready="true" data-data-ready="true">
-  <h1>{title}</h1>
-</main>
+<Surface {title} label="Workspace" description="Your extension sidebar.">
+  <div
+    class="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground"
+  >
+    Ready for your product interface.
+  </div>
+</Surface>
 {% endraw %}{% endif %}

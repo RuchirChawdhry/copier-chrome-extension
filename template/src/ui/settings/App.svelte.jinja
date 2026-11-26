@@ -9,6 +9,7 @@
   import PermissionPanel from '../components/PermissionPanel.svelte';
   import StatePanel from '../components/StatePanel.svelte';
   import Status from '../components/Status.svelte';
+  import Surface from '../components/Surface.svelte';
   import Tabs from '../components/Tabs.svelte';
 
   let appearance = $state<Appearance>('system');
@@ -79,8 +80,11 @@
         retry={error ? load : undefined}
       />
     {:else}
-      <label for="appearance">Preferred appearance</label>
+      <label class="text-sm font-medium" for="appearance"
+        >Preferred appearance</label
+      >
       <select
+        class="h-9 w-full max-w-xs rounded-md border border-input bg-card px-3 text-sm"
         id="appearance"
         bind:value={appearance}
         disabled={busy}
@@ -93,7 +97,7 @@
         <option value="light">Light</option>
         <option value="dark">Dark</option>
       </select>
-      <div class="actions">
+      <div class="flex flex-wrap gap-2">
         <Button primary onclick={save} {busy}
           >{busy ? 'Saving…' : 'Save settings'}</Button
         >
@@ -109,7 +113,7 @@
   {/if}
   {#if features.keyboardShortcuts}
     <Card title="Keyboard shortcuts">
-      <p>
+      <p class="text-sm leading-relaxed text-muted-foreground">
         Save the active page with Alt+Shift+S (suggested; change it in your
         browser's extension shortcut settings).
       </p>
@@ -117,12 +121,14 @@
   {/if}
   {#if features.toolbarBadge}
     <Card title="Toolbar badge"
-      ><p>The toolbar icon shows the saved-link count.</p></Card
+      ><p class="text-sm leading-relaxed text-muted-foreground">
+        The toolbar icon shows the saved-link count.
+      </p></Card
     >
   {/if}
   {#if features.contentScript}
     <Card title="Content script"
-      ><p>
+      ><p class="text-sm leading-relaxed text-muted-foreground">
         The example runs only on https://example.com/ in an isolated world.
       </p></Card
     >
@@ -135,12 +141,13 @@
   >
 {/snippet}
 
-<main data-ready="true" data-data-ready={ready}>
-  <h1>{title} · Settings</h1>
-  <p>
-    Preferences for your extension. This page is independent from the popup and
-    sidebar bundles.
-  </p>
+<Surface
+  {title}
+  label="Settings"
+  description="Manage appearance and browser capabilities."
+  wide
+  {ready}
+>
   {#if browserFeatures}
     <Tabs id="settings" {tabs} bind:active>
       {#snippet children(section)}
@@ -155,12 +162,12 @@
     {@render general()}
   {/if}
   <Dialog id="browser-access-title" title="Browser access" bind:open={helpOpen}>
-    <p>
+    <p class="text-sm leading-relaxed text-muted-foreground">
       Optional permissions are requested only when you grant access. Enabled
       content scripts run on their explicitly declared sites.
     </p>
   </Dialog>
-</main>
+</Surface>
 {% endraw %}{% else %}{% raw %}<script lang="ts">
   import { onMount } from 'svelte';
   import features from '../../../extension.config.json';
@@ -172,6 +179,7 @@
   import PermissionPanel from '../components/PermissionPanel.svelte';
   import StatePanel from '../components/StatePanel.svelte';
   import Status from '../components/Status.svelte';
+  import Surface from '../components/Surface.svelte';
   import Tabs from '../components/Tabs.svelte';
 
   let appearance = $state<Appearance>('system');
@@ -242,8 +250,11 @@
         retry={error ? load : undefined}
       />
     {:else}
-      <label for="appearance">Preferred appearance</label>
+      <label class="text-sm font-medium" for="appearance"
+        >Preferred appearance</label
+      >
       <select
+        class="h-9 w-full max-w-xs rounded-md border border-input bg-card px-3 text-sm"
         id="appearance"
         bind:value={appearance}
         disabled={busy}
@@ -256,7 +267,7 @@
         <option value="light">Light</option>
         <option value="dark">Dark</option>
       </select>
-      <div class="actions">
+      <div class="flex flex-wrap gap-2">
         <Button primary onclick={save} {busy}
           >{busy ? 'Saving…' : 'Save settings'}</Button
         >
@@ -272,7 +283,7 @@
   {/if}
   {#if features.keyboardShortcuts}
     <Card title="Keyboard shortcuts">
-      <p>
+      <p class="text-sm leading-relaxed text-muted-foreground">
         Extension action: Alt+Shift+S (suggested; change it in your browser's
         extension shortcut settings).
       </p>
@@ -280,12 +291,16 @@
   {/if}
   {#if features.toolbarBadge}
     <Card title="Toolbar badge"
-      ><p>The toolbar badge helper is available for your product.</p></Card
+      ><p class="text-sm leading-relaxed text-muted-foreground">
+        The toolbar badge helper is available for your product.
+      </p></Card
     >
   {/if}
   {#if features.contentScript}
     <Card title="Content script"
-      ><p>Configure permitted sites in extension.config.json.</p></Card
+      ><p class="text-sm leading-relaxed text-muted-foreground">
+        Configure permitted sites in extension.config.json.
+      </p></Card
     >
   {/if}
   <Button
@@ -296,12 +311,13 @@
   >
 {/snippet}
 
-<main data-ready="true" data-data-ready={ready}>
-  <h1>{title} · Settings</h1>
-  <p>
-    Preferences for your extension. This page is independent from the popup and
-    sidebar bundles.
-  </p>
+<Surface
+  {title}
+  label="Settings"
+  description="Manage appearance and browser capabilities."
+  wide
+  {ready}
+>
   {#if browserFeatures}
     <Tabs id="settings" {tabs} bind:active>
       {#snippet children(section)}
@@ -316,10 +332,10 @@
     {@render general()}
   {/if}
   <Dialog id="browser-access-title" title="Browser access" bind:open={helpOpen}>
-    <p>
+    <p class="text-sm leading-relaxed text-muted-foreground">
       Optional permissions are requested only when you grant access. Enabled
       content scripts run on their explicitly declared sites.
     </p>
   </Dialog>
-</main>
+</Surface>
 {% endraw %}{% endif %}

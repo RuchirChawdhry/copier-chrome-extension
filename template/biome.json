@@ -33,5 +33,10 @@
       "!node_modules",
       "!.dev-dist"
     ]
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
   }
 }

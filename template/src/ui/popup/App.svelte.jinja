@@ -8,6 +8,7 @@
   import Button from '../components/Button.svelte';
   import Card from '../components/Card.svelte';
   import StatePanel from '../components/StatePanel.svelte';
+  import Surface from '../components/Surface.svelte';
 
   const logger = createLogger('popup');
   const items = $derived.by(() => {
@@ -70,15 +71,17 @@
   }
 </script>
 
-<main data-ready="true" data-data-ready={$items.ready && tabReady}>
-  <div class="header">
-    <h1>{title}</h1>
-    <span class="count">{$items.ready ? $items.value.length : '—'} saved</span>
-  </div>
-  <p class="muted">Quick actions, right where you need them.</p>
-  <div class="actions">
+<Surface
+  {title}
+  label="Quick actions"
+  description="Save and revisit your links."
+  ready={$items.ready && tabReady}
+  badge={($items.ready ? $items.value.length : '—') + ' saved'}
+>
+  <div class="grid grid-cols-2 gap-2">
     <Button
       primary
+      class="col-span-2"
       {busy}
       onclick={saveCurrent}
       disabled={!tabReady || !tab?.url || !/^https?:/.test(tab.url)}
@@ -124,11 +127,11 @@
     <StatePanel kind="loading" message="Loading saved links…" />
   {:else if $items.value.length}
     <Card title="Recently saved">
-      <ul class="list">
+      <ul class="divide-y divide-border">
         {#each $items.value.slice(0, 3) as item (item.id)}
-          <li>
+          <li class="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
             <a
-              class="truncate"
+              class="block truncate text-sm font-medium text-foreground hover:text-primary"
               href={item.url}
               target="_blank"
               rel="noreferrer"
@@ -142,13 +145,14 @@
   {:else}
     <StatePanel kind="empty" message="No saved links yet." />
   {/if}
-</main>
+</Surface>
 {% endraw %}{% else %}{% raw %}<script lang="ts">
   import { onMount } from 'svelte';
   import config from '../../../extension.config.json';
   import { createLogger, errorMessage } from '../../core/logger';
   import Button from '../components/Button.svelte';
   import Status from '../components/Status.svelte';
+  import Surface from '../components/Surface.svelte';
 
   const title = chrome.runtime.getManifest().name;
   const logger = createLogger('popup');
@@ -176,10 +180,13 @@
   }
 </script>
 
-<main data-ready="true" data-data-ready="true">
-  <h1>{title}</h1>
+<Surface
+  {title}
+  label="Quick actions"
+  description="Open your extension workspace."
+>
   {#if config.sidebar || config.settings}
-    <div class="actions">
+    <div class="flex flex-wrap gap-2">
       {#if config.sidebar}
         <Button onclick={openSidebar} disabled={windowId === undefined}
           >Open sidebar</Button
@@ -191,5 +198,5 @@
     </div>
   {/if}
   <Status message={error} kind="error" />
-</main>
+</Surface>
 {% endraw %}{% endif %}

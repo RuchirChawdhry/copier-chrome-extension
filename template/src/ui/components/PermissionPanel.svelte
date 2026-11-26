@@ -62,7 +62,7 @@
 </script>
 
 <Card title="Optional notifications">
-  <p>
+  <p class="text-sm leading-relaxed text-muted-foreground">
     Demonstrates requesting browser permission only when you choose to grant
     access. No notifications are sent.
   </p>
@@ -73,7 +73,9 @@
       retry={error ? load : undefined}
     />
   {:else}
-    <p>Access: {granted ? 'Granted' : 'Not granted'}</p>
+    <p class="text-sm leading-relaxed text-muted-foreground">
+      Access: {granted ? 'Granted' : 'Not granted'}
+    </p>
     <Button onclick={change} {busy}
       >{granted
         ? 'Remove notification access'
