@@ -3,6 +3,6 @@
 </script>
 
 <label class="toggle">
-  <input type="checkbox" role="switch" bind:checked {disabled} />
+  <input type="checkbox" role="switch" aria-checked={checked} bind:checked {disabled} />
   <span>{label}</span>
 </label>

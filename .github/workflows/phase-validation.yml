@@ -21,7 +21,7 @@ jobs:
         run: |
           corepack enable
           pnpm install --frozen-lockfile
-          pnpm fix
+          pnpm exec biome check --write --max-diagnostics=100 .
           pnpm check
           pnpm build
           pnpm verify:build

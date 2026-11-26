@@ -161,9 +161,6 @@ button:disabled {
   text-overflow: ellipsis;
   display: block;
 }
-.error {
-  color: #b42318;
-}
 label {
   display: block;
   font-weight: 600;
@@ -217,14 +214,11 @@ label {
   color: var(--muted);
   background: var(--surface);
 }
-.error {
-  color: var(--error-text, #b42318);
-}
 .status-message {
   color: var(--text);
   font-size: 13px;
 }
-.status-message.error {
+.error, .status-message.error {
   color: var(--error-text, #b42318);
 }
 .spinner {

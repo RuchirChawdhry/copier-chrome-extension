@@ -5,11 +5,13 @@
   import { exampleStorage } from '../../example/storage';
   import Button from '../components/Button.svelte';
   import SearchField from '../components/SearchField.svelte';
+  import Toggle from '../components/Toggle.svelte';
   import StatePanel from '../components/StatePanel.svelte';
 
   const logger = createLogger('sidebar');
   let attempt = $state(0);
   let query = $state('');
+  let showUrls = $state(true);
   let removing = $state<string | null>(null);
   const items = $derived.by(() => makeItems(attempt));
   function makeItems(_attempt: number) {
@@ -53,6 +55,7 @@
     <StatePanel kind="empty" message="Nothing saved yet. Save a page to get started." />
   {:else}
     <SearchField bind:value={query} label="Search saved links" />
+    <Toggle bind:checked={showUrls} label="Show link addresses" />
     {#if !filtered.length}<StatePanel kind="empty" message="No matching links." />{/if}
     <ul class="list">
       {#each filtered as item (item.id)}
@@ -66,7 +69,7 @@
               title={item.url}
               >{item.title}</a
             >
-            <span class="muted truncate">{item.url}</span>
+            {#if showUrls}<span class="muted truncate">{item.url}</span>{/if}
           </div>
           <Button
             busy={removing === item.id}

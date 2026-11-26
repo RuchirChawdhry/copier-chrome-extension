@@ -80,6 +80,11 @@ test('configured surfaces, typed RPC, reactive storage and settings', async ({
       await expect(page.getByRole('link', { name: 'Fixture item' })).toBeVisible();
       await expect(page.getByRole('link', { name: 'Second item' })).toHaveCount(0);
       await search.clear();
+      const addresses = page.getByRole('switch', { name: 'Show link addresses' });
+      await expect(page.getByText('https://example.org/', { exact: true })).toBeVisible();
+      await addresses.uncheck();
+      await expect(page.getByText('https://example.org/', { exact: true })).toHaveCount(0);
+      await addresses.check();
       const second = await context.newPage();
       await second.goto(url('sidebar.html'));
       await expect(
