@@ -1,9 +1,9 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import features from '../../../features.json';
+  import { sendCommand } from '../../core/client';
   import type { SavedItem } from '../../core/items';
   import { getItems, subscribeToItems } from '../../core/storage';
-  import { sendCommand } from '../../core/client';
 
   let items = $state<SavedItem[]>([]);
   let tab = $state<chrome.tabs.Tab | null>(null);

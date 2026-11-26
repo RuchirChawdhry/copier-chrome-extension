@@ -1,8 +1,9 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { sendCommand } from '../../core/client';
   import type { SavedItem } from '../../core/items';
   import { getItems, subscribeToItems } from '../../core/storage';
-  import { sendCommand } from '../../core/client';
+
   let items = $state<SavedItem[]>([]);
   let error = $state('');
 

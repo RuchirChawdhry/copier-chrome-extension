@@ -1,5 +1,5 @@
-import { initializeAppearance } from '../../core/appearance';
 import { mount } from 'svelte';
+import { initializeAppearance } from '../../core/appearance';
 import App from './App.svelte';
 
 const target = document.querySelector('#app');

@@ -15,7 +15,10 @@ export async function setItems(items: SavedItem[]): Promise<void> {
 }
 
 export function subscribeToItems(onChange: () => void): () => void {
-  const listener = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {
+  const listener = (
+    changes: Record<string, chrome.storage.StorageChange>,
+    area: string,
+  ) => {
     if (area === 'local' && changes[ITEMS_KEY]) onChange();
   };
   chrome.storage.onChanged.addListener(listener);
