@@ -91,6 +91,6 @@ Use `createLogger('popup')` (or another context). Debug/info output is developme
 
 ## Browser diagnostics
 
-Run `pnpm screenshots` for predictable light/dark PNGs in `reports/screenshots/`. `pnpm test:e2e` captures the same screenshots, traces for persistent browser contexts in `test-results/`, and an HTML report in `playwright-report/`. View a trace with `pnpm exec playwright show-trace path/to/trace.zip`. CI uploads these files as `chromium-diagnostics` even on failed tests. Screenshots are extension-page renderings at fixed viewports, not browser chrome or native toolbar panels. Fixture data is synthetic; review traces before sharing if you add tests with real data.
+Run `pnpm screenshots` for predictable light/dark PNGs in `reports/screenshots/`. The generated screenshot directory is replaced on each capture; keep personal images elsewhere. `pnpm test:e2e` captures the same screenshots, traces for persistent browser contexts in `test-results/`, and an HTML report in `playwright-report/`. View a trace with `pnpm exec playwright show-trace path/to/trace.zip`. CI uploads these files as `chromium-diagnostics` even on failed tests. Screenshots are extension-page renderings at fixed viewports, not browser chrome or native toolbar panels. Fixture data is synthetic; review traces before sharing if you add tests with real data.
 
 Run `pnpm run setup` explicitly: `pnpm setup` is a pnpm built-in. Initialize Git before setup to install hooks automatically. On Linux, if browser libraries are missing, run `pnpm exec playwright install --with-deps chromium`.
