@@ -21,15 +21,16 @@
 </script>
 
 <dialog
+  class="m-auto w-[calc(100%-2rem)] max-w-md rounded-lg border border-border bg-popover p-5 text-popover-foreground shadow-xl backdrop:bg-black/60"
   bind:this={dialog}
   aria-labelledby={id}
   onclose={() => {
     open = false;
   }}
 >
-  <h2 {id}>{title}</h2>
+  <h2 class="mb-3 text-base font-semibold" {id}>{title}</h2>
   {@render children()}
-  <div class="actions">
+  <div class="mt-4 flex justify-end gap-2">
     <Button
       onclick={() => {
         open = false;
