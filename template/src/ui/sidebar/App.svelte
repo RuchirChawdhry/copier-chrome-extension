@@ -40,7 +40,7 @@
             <a class="truncate" href={item.url} target="_blank" rel="noreferrer" title={item.url}>{item.title}</a>
             <span class="muted truncate">{item.url}</span>
           </div>
-          <button aria-label={'Remove ' + item.title} onclick={() => remove(item.id)}>Remove</button>
+          <button type="button" aria-label={'Remove ' + item.title} onclick={() => remove(item.id)}>Remove</button>
         </li>
       {/each}
     </ul>

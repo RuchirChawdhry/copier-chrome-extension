@@ -10,6 +10,8 @@
   --line: #dce5e9;
   --accent: #0d9488;
   --accent-ink: #ffffff;
+  --count-bg: #d8f4ed;
+  --count-text: #12665e;
 }
 * {
   box-sizing: border-box;
@@ -64,8 +66,8 @@ a {
   font-size: 13px;
 }
 .count {
-  background: #d8f4ed;
-  color: #12665e;
+  background: var(--count-bg);
+  color: var(--count-text);
   padding: 4px 9px;
   border-radius: 12px;
   font-size: 12px;
@@ -175,10 +177,8 @@ select {
     --line: #304047;
     --accent: #38bdb0;
     --accent-ink: #102420;
-  }
-  .count {
-    background: #173d36;
-    color: #8bdfd2;
+    --count-bg: #173d36;
+    --count-text: #8bdfd2;
   }
 }
 
@@ -190,10 +190,8 @@ select {
   --line: #304047;
   --accent: #38bdb0;
   --accent-ink: #102420;
-}
-:root[data-appearance="dark"] .count {
-  background: #173d36;
-  color: #8bdfd2;
+  --count-bg: #173d36;
+  --count-text: #8bdfd2;
 }
 
 :root[data-appearance="light"] {
