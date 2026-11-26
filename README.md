@@ -30,7 +30,7 @@ Use `pnpm bench` for extension-page navigation-to-Svelte-mount measurements. For
 
 ## Versioned releases
 
-`VERSION` is the template version, independent of generated package.json versions. A change to VERSION on main triggers a validated GitHub Release with a matching vMAJOR.MINOR.PATCH tag. Manual release workflow runs default to a dry run; explicitly choose publish only on main for a new version. Use `copier copy` / `copier update` to consume stable tags, or `--vcs-ref=HEAD` for unreleased changes. Review Copier conflicts before committing.
+`VERSION` is the template version, independent of generated package.json versions. A change to VERSION on main triggers a validated GitHub Release with a matching vMAJOR.MINOR.PATCH tag. Manual release workflow runs default to a dry run; explicitly choose publish only on main for a new version. Use `copier copy` / `copier update` to consume stable tags, or `--vcs-ref=HEAD` for unreleased changes. Review Copier conflicts before committing. When updating from v0.1.0, explicitly select `-d include_example=true` if you want to retain the saved-link demonstration; the new default is clean.
 
 Every release includes a source archive, a generated starter extension ZIP, SHA256SUMS.txt and measured JSON reports. No browser-store publishing credentials are required.
 
