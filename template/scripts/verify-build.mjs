@@ -37,14 +37,39 @@ assert(
   manifest.permissions.includes('sidePanel') === features.sidebar,
   'side panel permission mismatch',
 );
-assert(manifest.permissions.includes('activeTab') === (features.popup || features.pageContextMenu || features.toolbarContextMenu || features.keyboardShortcuts), 'activeTab permission mismatch');
-assert(Boolean(manifest.commands?.['save-active-page']) === features.keyboardShortcuts, 'keyboard shortcut mismatch');
-assert(JSON.stringify(manifest.optional_permissions ?? []) === JSON.stringify(features.optionalPermissions ? ['notifications'] : []), 'optional permission mismatch');
-assert(!manifest.permissions.includes('notifications'), 'notifications must never be required');
+assert(
+  manifest.permissions.includes('activeTab') ===
+    (features.popup ||
+      features.pageContextMenu ||
+      features.toolbarContextMenu ||
+      features.keyboardShortcuts),
+  'activeTab permission mismatch',
+);
+assert(
+  Boolean(manifest.commands?.['save-active-page']) ===
+    features.keyboardShortcuts,
+  'keyboard shortcut mismatch',
+);
+assert(
+  JSON.stringify(manifest.optional_permissions ?? []) ===
+    JSON.stringify(features.optionalPermissions ? ['notifications'] : []),
+  'optional permission mismatch',
+);
+assert(
+  !manifest.permissions.includes('notifications'),
+  'notifications must never be required',
+);
 assert(!manifest.host_permissions?.length, 'unexpected broad host access');
-assert(Boolean(manifest.content_scripts?.length) === features.contentScript, 'content script mismatch');
+assert(
+  Boolean(manifest.content_scripts?.length) === features.contentScript,
+  'content script mismatch',
+);
 if (features.contentScript) {
-  assert(JSON.stringify(manifest.content_scripts[0].matches) === JSON.stringify(['https://example.com/*']), 'content script scope mismatch');
+  assert(
+    JSON.stringify(manifest.content_scripts[0].matches) ===
+      JSON.stringify(['https://example.com/*']),
+    'content script scope mismatch',
+  );
   await assertFile('content.js');
 }
 await assertFile(manifest.background.service_worker);

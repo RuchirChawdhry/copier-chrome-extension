@@ -1,0 +1,11 @@
+{
+  "popup": true,
+  "sidebar": true,
+  "settings": true,
+  "pageContextMenu": true,
+  "toolbarContextMenu": true,
+  "keyboardShortcuts": false,
+  "toolbarBadge": false,
+  "optionalPermissions": false,
+  "contentScript": false
+}

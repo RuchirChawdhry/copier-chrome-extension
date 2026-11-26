@@ -17,8 +17,12 @@ export function observePermission(
   const refresh = () => {
     const current = ++revision;
     void permissions.contains(permission).then(
-      (granted) => { if (active && current === revision) update(granted); },
-      (error: unknown) => { if (active && current === revision) fail(error); },
+      (granted) => {
+        if (active && current === revision) update(granted);
+      },
+      (error: unknown) => {
+        if (active && current === revision) fail(error);
+      },
     );
   };
   chrome.permissions.onAdded.addListener(refresh);

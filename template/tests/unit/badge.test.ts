@@ -10,11 +10,15 @@ describe('toolbar badge', () => {
   it('updates native action badge', async () => {
     const setBadgeText = vi.fn().mockResolvedValue(undefined);
     const setBadgeBackgroundColor = vi.fn().mockResolvedValue(undefined);
-    vi.stubGlobal('chrome', { action: { setBadgeText, setBadgeBackgroundColor } });
+    vi.stubGlobal('chrome', {
+      action: { setBadgeText, setBadgeBackgroundColor },
+    });
     try {
       await setCountBadge(4);
       expect(setBadgeText).toHaveBeenCalledWith({ text: '4' });
       expect(setBadgeBackgroundColor).toHaveBeenCalled();
-    } finally { vi.unstubAllGlobals(); }
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

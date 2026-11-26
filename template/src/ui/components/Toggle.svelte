@@ -1,8 +1,18 @@
 <script lang="ts">
-  let { checked = $bindable(false), label, disabled = false }: { checked?: boolean; label: string; disabled?: boolean } = $props();
+  let {
+    checked = $bindable(false),
+    label,
+    disabled = false,
+  }: { checked?: boolean; label: string; disabled?: boolean } = $props();
 </script>
 
 <label class="toggle">
-  <input type="checkbox" role="switch" aria-checked={checked} bind:checked {disabled} />
+  <input
+    type="checkbox"
+    role="switch"
+    aria-checked={checked}
+    bind:checked
+    {disabled}
+  >
   <span>{label}</span>
 </label>

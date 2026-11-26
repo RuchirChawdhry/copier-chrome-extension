@@ -1,0 +1,14 @@
+_commit: 753c205
+_src_path: .
+include_content_script: false
+include_keyboard_shortcuts: false
+include_optional_permissions: false
+include_page_context_menu: true
+include_popup: true
+include_settings: true
+include_sidebar: true
+include_toolbar_badge: false
+include_toolbar_context_menu: true
+project_description: Lightweight, responsive Chromium extension
+project_name: My Chromium Extension
+project_slug: my-chromium-extension

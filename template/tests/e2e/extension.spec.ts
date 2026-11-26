@@ -73,17 +73,29 @@ test('configured surfaces, typed RPC, reactive storage and settings', async ({
       ).toBeVisible();
     }
     if (features.sidebar) {
-      const search = page.getByRole('searchbox', { name: 'Search saved links' });
+      const search = page.getByRole('searchbox', {
+        name: 'Search saved links',
+      });
       await search.fill('unmatched query');
       await expect(page.getByText('No matching links.')).toBeVisible();
       await search.fill('Fixture');
-      await expect(page.getByRole('link', { name: 'Fixture item' })).toBeVisible();
-      await expect(page.getByRole('link', { name: 'Second item' })).toHaveCount(0);
+      await expect(
+        page.getByRole('link', { name: 'Fixture item' }),
+      ).toBeVisible();
+      await expect(page.getByRole('link', { name: 'Second item' })).toHaveCount(
+        0,
+      );
       await search.clear();
-      const addresses = page.getByRole('switch', { name: 'Show link addresses' });
-      await expect(page.getByText('https://example.org/', { exact: true })).toBeVisible();
+      const addresses = page.getByRole('switch', {
+        name: 'Show link addresses',
+      });
+      await expect(
+        page.getByText('https://example.org/', { exact: true }),
+      ).toBeVisible();
       await addresses.uncheck();
-      await expect(page.getByText('https://example.org/', { exact: true })).toHaveCount(0);
+      await expect(
+        page.getByText('https://example.org/', { exact: true }),
+      ).toHaveCount(0);
       await addresses.check();
       const second = await context.newPage();
       await second.goto(url('sidebar.html'));

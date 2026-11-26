@@ -27,28 +27,41 @@ const manifest = {
   },
   permissions: [
     'storage',
-    ...(features.popup || features.pageContextMenu || features.toolbarContextMenu || features.keyboardShortcuts ? ['activeTab'] : []),
+    ...(features.popup ||
+    features.pageContextMenu ||
+    features.toolbarContextMenu ||
+    features.keyboardShortcuts
+      ? ['activeTab']
+      : []),
     ...(features.sidebar ? ['sidePanel'] : []),
     ...(features.pageContextMenu || features.toolbarContextMenu
       ? ['contextMenus']
       : []),
   ],
-  ...(features.optionalPermissions ? { optional_permissions: ['notifications'] } : {}),
-  ...(features.keyboardShortcuts ? {
-    commands: {
-      'save-active-page': {
-        suggested_key: { default: 'Alt+Shift+S' },
-        description: 'Save the active page',
-      },
-    },
-  } : {}),
-  ...(features.contentScript ? {
-    content_scripts: [{
-      matches: ['https://example.com/*'],
-      js: ['content.js'],
-      run_at: 'document_idle',
-    }],
-  } : {}),
+  ...(features.optionalPermissions
+    ? { optional_permissions: ['notifications'] }
+    : {}),
+  ...(features.keyboardShortcuts
+    ? {
+        commands: {
+          'save-active-page': {
+            suggested_key: { default: 'Alt+Shift+S' },
+            description: 'Save the active page',
+          },
+        },
+      }
+    : {}),
+  ...(features.contentScript
+    ? {
+        content_scripts: [
+          {
+            matches: ['https://example.com/*'],
+            js: ['content.js'],
+            run_at: 'document_idle',
+          },
+        ],
+      }
+    : {}),
   background: { service_worker: 'background.js', type: 'module' },
   action: features.popup
     ? {

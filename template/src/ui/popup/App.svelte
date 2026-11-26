@@ -16,8 +16,8 @@
   });
   function makeItems(_attempt: number) {
     return watchStorage(
-    exampleStorage.defaultValue('example.links'),
-    (update, fail) => exampleStorage.observe('example.links', update, fail),
+      exampleStorage.defaultValue('example.links'),
+      (update, fail) => exampleStorage.observe('example.links', update, fail),
     );
   }
   let attempt = $state(0);
@@ -102,10 +102,24 @@
       </Button>
     {/if}
   </div>
-  {#if error}<StatePanel kind="error" message={error} retry={!tabReady ? loadTab : undefined} />{/if}
-  {#if !tabReady && !error}<StatePanel kind="loading" message="Checking active tab…" />{/if}
+  {#if error}
+    <StatePanel
+      kind="error"
+      message={error}
+      retry={!tabReady ? loadTab : undefined}
+    />
+  {/if}
+  {#if !tabReady && !error}
+    <StatePanel kind="loading" message="Checking active tab…" />
+  {/if}
   {#if $items.error}
-    <StatePanel kind="error" message={$items.error} retry={() => { attempt += 1; }} />
+    <StatePanel
+      kind="error"
+      message={$items.error}
+      retry={() => {
+        attempt += 1;
+      }}
+    />
   {:else if !$items.ready}
     <StatePanel kind="loading" message="Loading saved links…" />
   {:else if $items.value.length}

@@ -5,8 +5,8 @@
   import { exampleStorage } from '../../example/storage';
   import Button from '../components/Button.svelte';
   import SearchField from '../components/SearchField.svelte';
-  import Toggle from '../components/Toggle.svelte';
   import StatePanel from '../components/StatePanel.svelte';
+  import Toggle from '../components/Toggle.svelte';
 
   const logger = createLogger('sidebar');
   let attempt = $state(0);
@@ -16,11 +16,17 @@
   const items = $derived.by(() => makeItems(attempt));
   function makeItems(_attempt: number) {
     return watchStorage(
-    exampleStorage.defaultValue('example.links'),
-    (update, fail) => exampleStorage.observe('example.links', update, fail),
+      exampleStorage.defaultValue('example.links'),
+      (update, fail) => exampleStorage.observe('example.links', update, fail),
     );
   }
-  const filtered = $derived($items.value.filter((item) => (item.title + ' ' + item.url).toLowerCase().includes(query.toLowerCase().trim())));
+  const filtered = $derived(
+    $items.value.filter((item) =>
+      (item.title + ' ' + item.url)
+        .toLowerCase()
+        .includes(query.toLowerCase().trim()),
+    ),
+  );
   let error = $state('');
 
   const title = chrome.runtime.getManifest().name;
@@ -33,7 +39,9 @@
     } catch (cause) {
       logger.warn('Remove failed');
       error = errorMessage(cause);
-    } finally { removing = null; }
+    } finally {
+      removing = null;
+    }
   }
 </script>
 
@@ -46,17 +54,30 @@
     A lightweight sidebar workspace. Replace this sample list with your
     product's domain.
   </p>
-  {#if error}<StatePanel kind="error" message={error} />{/if}
+  {#if error}
+    <StatePanel kind="error" message={error} />
+  {/if}
   {#if $items.error}
-    <StatePanel kind="error" message={$items.error} retry={() => { attempt += 1; }} />
+    <StatePanel
+      kind="error"
+      message={$items.error}
+      retry={() => {
+        attempt += 1;
+      }}
+    />
   {:else if !$items.ready}
     <StatePanel kind="loading" message="Loading saved items…" />
   {:else if !$items.value.length}
-    <StatePanel kind="empty" message="Nothing saved yet. Save a page to get started." />
+    <StatePanel
+      kind="empty"
+      message="Nothing saved yet. Save a page to get started."
+    />
   {:else}
     <SearchField bind:value={query} label="Search saved links" />
     <Toggle bind:checked={showUrls} label="Show link addresses" />
-    {#if !filtered.length}<StatePanel kind="empty" message="No matching links." />{/if}
+    {#if !filtered.length}
+      <StatePanel kind="empty" message="No matching links." />
+    {/if}
     <ul class="list">
       {#each filtered as item (item.id)}
         <li>
@@ -69,7 +90,9 @@
               title={item.url}
               >{item.title}</a
             >
-            {#if showUrls}<span class="muted truncate">{item.url}</span>{/if}
+            {#if showUrls}
+              <span class="muted truncate">{item.url}</span>
+            {/if}
           </div>
           <Button
             busy={removing === item.id}
