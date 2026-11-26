@@ -24,17 +24,33 @@ jobs:
           pnpm check
           pnpm build
           pnpm exec playwright install --with-deps chromium
-          pnpm exec playwright test states.spec.ts
+          pnpm exec playwright test
+          test "$(find reports/screenshots -name '*.png' | wc -l)" -eq 6
+          node -e 'const fs = require("node:fs"); const features = JSON.parse(fs.readFileSync("features.json")); for (const key of ["keyboardShortcuts", "toolbarBadge", "optionalPermissions", "contentScript"]) features[key] = true; fs.writeFileSync("features.json", JSON.stringify(features));'
+          pnpm build
+          pnpm verify:build
+          pnpm exec playwright test
+          test "$(find reports/screenshots -name '*.png' | wc -l)" -eq 8
       - name: Sync formatted template and fixture
         run: |
           cp -r "$RUNNER_TEMP/extension/src/." template/src/
           cp -r "$RUNNER_TEMP/extension/tests/." template/tests/
           cp -r template/src/. .validation/generated/src/
           cp -r template/tests/. .validation/generated/tests/
-          cp .validation/next-workflow.yml .github/workflows/phase-validation.yml
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add template .github/workflows/phase-validation.yml
+          git add template
           git add -f .validation/generated/src .validation/generated/tests
-          git commit -m 'Normalize and validate state regression tests'
+          git diff --cached --quiet || git commit -m 'Normalize and validate state regression tests'
           git push
+      - name: Upload final diagnostics
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: phase3-final-diagnostics
+          path: |
+            ${{ runner.temp }}/extension/reports/screenshots/
+            ${{ runner.temp }}/extension/test-results/
+            ${{ runner.temp }}/extension/playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7
