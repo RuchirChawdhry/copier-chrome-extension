@@ -80,7 +80,7 @@ try {
   for (const marker of ['Selective reload one', 'Selective reload two']) {
     await writeFile(
       source,
-      original.replace('</main>', '<p>' + marker + '</p></main>'),
+      original.replace('</Surface>', '<p>' + marker + '</p></Surface>'),
     );
     await page.getByText(marker, { exact: true }).waitFor({ timeout: 60_000 });
     assert(!workerClosed, 'UI edit must not reload worker');

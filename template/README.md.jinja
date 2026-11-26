@@ -123,3 +123,7 @@ Dependabot proposes npm/pnpm and GitHub Actions updates weekly. Review and valid
 ## Declarative configuration
 
 `extension.config.json` is the configuration authority. Surface flags control standard manifest entries; `manifest` holds declared permission lists, commands and additional manifest keys. `contentScripts` entries specify source, packaged output, matches and optional manifest properties. Keep capability flags and declarations consistent; update your own event handlers when adding new capabilities. `pnpm verify:build` compares the built manifest with the declaration and independently checks local executable assets, version, icon dimensions and production-only output. `reports/diagnostics.json` summarizes test errors, captured browser events and artifact paths. Logs and traces may contain sensitive data from tests; use synthetic fixtures. `pnpm run doctor` emits `reports/doctor.json`, exits nonzero for missing required prerequisites and warns about Git hooks or absent build output.
+
+## UI design system
+
+Tailwind CSS v4 compiles locally via the Vite plugin. Shared shadcn-svelte-style semantic tokens live in `src/ui/styles.css`; all interfaces share `Surface.svelte` and source-owned native Svelte primitives. No React, remote fonts or runtime CSS compiler. Use semantic colors (`bg-card`, `text-muted-foreground`, `border-border`) and shared components rather than screen-specific color values. The primitives are locally authored, not unmodified shadcn registry components.
