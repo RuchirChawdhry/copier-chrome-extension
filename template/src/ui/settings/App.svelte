@@ -13,7 +13,7 @@
 
   onMount(() =>
     preferences.observe(
-      'appearance',
+      'ui.theme',
       (value) => {
         if (!dirty) appearance = value;
         ready = true;
@@ -28,7 +28,7 @@
   async function save() {
     error = '';
     try {
-      await preferences.set('appearance', appearance);
+      await preferences.set('ui.theme', appearance);
       dirty = false;
       status = 'Saved';
     } catch (cause) {

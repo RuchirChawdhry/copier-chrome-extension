@@ -6,8 +6,8 @@
 
   const logger = createLogger('sidebar');
   const items = watchStorage(
-    exampleStorage.defaultValue('savedItems'),
-    (update, fail) => exampleStorage.observe('savedItems', update, fail),
+    exampleStorage.defaultValue('example.links'),
+    (update, fail) => exampleStorage.observe('example.links', update, fail),
   );
   let error = $state('');
 

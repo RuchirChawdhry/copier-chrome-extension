@@ -19,8 +19,8 @@ function isSavedItem(value: unknown): value is SavedItem {
   }
 }
 
-export const exampleStorage = createStorage<{ savedItems: SavedItem[] }>({
-  savedItems: {
+export const exampleStorage = createStorage<{ 'example.links': SavedItem[] }>({
+  'example.links': {
     default: () => [],
     validate: (value): value is SavedItem[] =>
       Array.isArray(value) && value.every(isSavedItem),

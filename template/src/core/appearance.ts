@@ -9,7 +9,7 @@ function applyAppearance(value: Appearance): void {
 }
 
 export function initializeAppearance(): () => void {
-  return preferences.observe('appearance', applyAppearance, () =>
+  return preferences.observe('ui.theme', applyAppearance, () =>
     logger.warn('Unable to load appearance'),
   );
 }

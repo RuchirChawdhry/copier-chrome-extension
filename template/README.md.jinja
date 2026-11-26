@@ -85,7 +85,7 @@ Only attach to browser instances and debugging ports you control. Close the debu
 
 RPC uses a typed contract, e.g. `await send('items.list', null)` returns saved items. Define input/output pairs, register validated routes, and pass JSON-serializable values (use `null`, not `undefined`, for an empty result). Use `route` to validate incoming requests; the client rejects error responses. No initial UI rendering depends on RPC.
 
-Use `createStorage` with typed defaults and runtime validators. `get`, `set`, `subscribe`, and `observe` are key-specific; `observe` delivers the initial value and subsequent events without redundant reads. Invalid/missing values fall back to defaults. Subscribe via `watchStorage` for a Svelte-readable store. Use the queue for read-modify-write mutations in the worker; direct writes to independent preferences are fine. The existing `savedItems` and `appearance` storage keys are preserved.
+Use `createStorage` with typed defaults and runtime validators. `get`, `set`, `subscribe`, and `observe` are key-specific; `observe` delivers the initial value and subsequent events without redundant reads. Invalid/missing values fall back to defaults. Subscribe via `watchStorage` for a Svelte-readable store. Use the queue for read-modify-write mutations in the worker; direct writes to independent preferences are fine. The sample uses `example.links` for saved links and `ui.theme` for appearance. No legacy storage-key migration or compatibility layer is provided.
 
 Use `createLogger('popup')` (or another context). Debug/info output is development-only; warnings/errors remain in production. Avoid logging private data.
 
