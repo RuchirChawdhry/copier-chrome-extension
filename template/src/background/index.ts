@@ -1,6 +1,10 @@
 import { addItem, removeItem } from '../core/items';
-import { getItems, setItems } from '../core/storage';
 import type { Command, CommandResult } from '../core/messages';
+import { getItems, setItems } from '../core/storage';
+import { connectDevReload } from './dev-reload';
+
+declare const __DEV_RELOAD_PORT__: number;
+if (__DEV_RELOAD_PORT__) connectDevReload(__DEV_RELOAD_PORT__);
 
 declare const __FEATURES__: {
   popup: boolean;
@@ -23,7 +27,9 @@ async function dispatch(command: Command): Promise<void> {
     case 'items.add':
       await enqueue(async () => {
         const previous = await getItems();
-        await setItems(addItem(previous, command, crypto.randomUUID(), Date.now()));
+        await setItems(
+          addItem(previous, command, crypto.randomUUID(), Date.now()),
+        );
       });
       return;
     case 'items.remove':
@@ -40,25 +46,47 @@ async function dispatch(command: Command): Promise<void> {
 chrome.runtime.onMessage.addListener((message: Command, _sender, respond) => {
   void dispatch(message)
     .then(() => respond({ ok: true } satisfies CommandResult))
-    .catch((error: unknown) => respond({
-      ok: false,
-      error: error instanceof Error ? error.message : String(error)
-    } satisfies CommandResult));
+    .catch((error: unknown) =>
+      respond({
+        ok: false,
+        error: error instanceof Error ? error.message : String(error),
+      } satisfies CommandResult),
+    );
   return true;
 });
 
 async function registerMenus(): Promise<void> {
   await chrome.contextMenus.removeAll();
   if (__FEATURES__.pageContextMenu) {
-    chrome.contextMenus.create({ id: 'save-page', title: 'Save this page', contexts: ['page'] });
-    chrome.contextMenus.create({ id: 'save-link', title: 'Save link', contexts: ['link'] });
+    chrome.contextMenus.create({
+      id: 'save-page',
+      title: 'Save this page',
+      contexts: ['page'],
+    });
+    chrome.contextMenus.create({
+      id: 'save-link',
+      title: 'Save link',
+      contexts: ['link'],
+    });
   }
   if (__FEATURES__.toolbarContextMenu) {
-    chrome.contextMenus.create({ id: 'save-active', title: 'Save current page', contexts: ['action'] });
+    chrome.contextMenus.create({
+      id: 'save-active',
+      title: 'Save current page',
+      contexts: ['action'],
+    });
     if (__FEATURES__.sidebar)
-      chrome.contextMenus.create({ id: 'open-sidebar', title: 'Open sidebar', contexts: ['action'] });
+      chrome.contextMenus.create({
+        id: 'open-sidebar',
+        title: 'Open sidebar',
+        contexts: ['action'],
+      });
     if (__FEATURES__.settings)
-      chrome.contextMenus.create({ id: 'open-settings', title: 'Open settings', contexts: ['action'] });
+      chrome.contextMenus.create({
+        id: 'open-settings',
+        title: 'Open settings',
+        contexts: ['action'],
+      });
   }
 }
 
@@ -67,22 +95,28 @@ chrome.runtime.onInstalled.addListener(() => {
     void registerMenus();
 });
 
-chrome.contextMenus.onClicked.addListener((info, tab) => {
-  const handlers: Record<string, () => void> = {
-    'save-page': () => {
-      const url = info.pageUrl ?? tab?.url;
-      if (url) void dispatch({ type: 'items.add', url, title: tab?.title });
-    },
-    'save-link': () => {
-      if (info.linkUrl) void dispatch({ type: 'items.add', url: info.linkUrl });
-    },
-    'save-active': () => {
-      if (tab?.url) void dispatch({ type: 'items.add', url: tab.url, title: tab.title });
-    },
-    'open-sidebar': () => {
-      if (tab?.windowId !== undefined) void chrome.sidePanel.open({ windowId: tab.windowId });
-    },
-    'open-settings': () => { void chrome.runtime.openOptionsPage(); }
-  };
-  handlers[String(info.menuItemId)]?.();
-});
+if (__FEATURES__.pageContextMenu || __FEATURES__.toolbarContextMenu)
+  chrome.contextMenus.onClicked.addListener((info, tab) => {
+    const handlers: Record<string, () => void> = {
+      'save-page': () => {
+        const url = info.pageUrl ?? tab?.url;
+        if (url) void dispatch({ type: 'items.add', url, title: tab?.title });
+      },
+      'save-link': () => {
+        if (info.linkUrl)
+          void dispatch({ type: 'items.add', url: info.linkUrl });
+      },
+      'save-active': () => {
+        if (tab?.url)
+          void dispatch({ type: 'items.add', url: tab.url, title: tab.title });
+      },
+      'open-sidebar': () => {
+        if (tab?.windowId !== undefined)
+          void chrome.sidePanel.open({ windowId: tab.windowId });
+      },
+      'open-settings': () => {
+        void chrome.runtime.openOptionsPage();
+      },
+    };
+    handlers[String(info.menuItemId)]?.();
+  });

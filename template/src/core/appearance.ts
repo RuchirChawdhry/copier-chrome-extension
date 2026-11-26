@@ -11,7 +11,9 @@ function applyAppearance(value: Appearance): void {
 export async function initializeAppearance(): Promise<void> {
   const stored = await chrome.storage.local.get(APPEARANCE_KEY);
   const initial = stored[APPEARANCE_KEY] as Appearance | undefined;
-  applyAppearance(initial === 'dark' || initial === 'light' ? initial : 'system');
+  applyAppearance(
+    initial === 'dark' || initial === 'light' ? initial : 'system',
+  );
 
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== 'local' || !changes[APPEARANCE_KEY]) return;

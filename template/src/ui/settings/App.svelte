@@ -29,7 +29,7 @@
       <option value="light">Light</option>
       <option value="dark">Dark</option>
     </select>
-    <div class="actions"><button class="primary" onclick={save}>Save settings</button></div>
+    <div class="actions"><button type="button" class="primary" onclick={save}>Save settings</button></div>
     {#if status}<p role="status">{status}</p>{/if}
   </section>
 </main>

@@ -1,8 +1,9 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { sendCommand } from '../../core/client';
   import type { SavedItem } from '../../core/items';
   import { getItems, subscribeToItems } from '../../core/storage';
-  import { sendCommand } from '../../core/client';
+
   let items = $state<SavedItem[]>([]);
   let error = $state('');
 
@@ -39,7 +40,7 @@
             <a class="truncate" href={item.url} target="_blank" rel="noreferrer" title={item.url}>{item.title}</a>
             <span class="muted truncate">{item.url}</span>
           </div>
-          <button aria-label={'Remove ' + item.title} onclick={() => remove(item.id)}>Remove</button>
+          <button type="button" aria-label={'Remove ' + item.title} onclick={() => remove(item.id)}>Remove</button>
         </li>
       {/each}
     </ul>

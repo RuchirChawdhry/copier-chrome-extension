@@ -1,9 +1,9 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import features from '../../../features.json';
+  import { sendCommand } from '../../core/client';
   import type { SavedItem } from '../../core/items';
   import { getItems, subscribeToItems } from '../../core/storage';
-  import { sendCommand } from '../../core/client';
 
   let items = $state<SavedItem[]>([]);
   let tab = $state<chrome.tabs.Tab | null>(null);
@@ -57,14 +57,14 @@
   </div>
   <p class="muted">Quick actions, right where you need them.</p>
   <div class="actions">
-    <button class="primary" onclick={saveCurrent} disabled={!tab?.url || busy}>
+    <button type="button" class="primary" onclick={saveCurrent} disabled={!tab?.url || busy}>
       {busy ? 'Saving…' : 'Save current page'}
     </button>
     {#if features.sidebar}
-      <button onclick={openSidebar} disabled={windowId === null}>Open sidebar</button>
+      <button type="button" onclick={openSidebar} disabled={windowId === null}>Open sidebar</button>
     {/if}
     {#if features.settings}
-      <button onclick={() => chrome.runtime.openOptionsPage()}>Settings</button>
+      <button type="button" onclick={() => chrome.runtime.openOptionsPage()}>Settings</button>
     {/if}
   </div>
   {#if error}<p role="alert" class="error">{error}</p>{/if}

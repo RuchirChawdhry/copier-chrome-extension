@@ -1,16 +1,14 @@
-import { test, expect, chromium } from '@playwright/test';
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import features from '../../features.json';
+import { chromium, expect, test } from '@playwright/test';
+const features = JSON.parse(readFileSync(resolve('features.json'), 'utf8')) as typeof import('../../features.json');
 
 test('the generated extension loads its configured surfaces', async () => {
   const dist = resolve('dist');
   const context = await chromium.launchPersistentContext('', {
     channel: 'chromium',
     headless: true,
-    args: [
-      '--disable-extensions-except=' + dist,
-      '--load-extension=' + dist
-    ]
+    args: ['--disable-extensions-except=' + dist, '--load-extension=' + dist],
   });
   try {
     let worker = context.serviceWorkers()[0];
@@ -21,7 +19,7 @@ test('the generated extension loads its configured surfaces', async () => {
     for (const [enabled, filename] of [
       [features.popup, 'popup.html'],
       [features.sidebar, 'sidebar.html'],
-      [features.settings, 'options.html']
+      [features.settings, 'options.html'],
     ] as const) {
       if (!enabled) continue;
       await page.goto('chrome-extension://' + extensionId + '/' + filename);
@@ -33,17 +31,29 @@ test('the generated extension loads its configured surfaces', async () => {
       await page.getByLabel('Preferred appearance').selectOption('dark');
       await page.getByRole('button', { name: 'Save settings' }).click();
       await expect(page.getByRole('status')).toHaveText('Saved');
-      await expect.poll(() => page.evaluate(() => document.documentElement.dataset.appearance)).toBe('dark');
+      await expect
+        .poll(() =>
+          page.evaluate(() => document.documentElement.dataset.appearance),
+        )
+        .toBe('dark');
     }
 
     if (features.sidebar) {
       await page.goto('chrome-extension://' + extensionId + '/sidebar.html');
-      await page.evaluate(() => chrome.runtime.sendMessage({
-        type: 'items.add', url: 'https://example.org/', title: 'Fixture item'
-      }));
-      await expect(page.getByRole('link', { name: 'Fixture item' })).toBeVisible();
+      await page.evaluate(() =>
+        chrome.runtime.sendMessage({
+          type: 'items.add',
+          url: 'https://example.org/',
+          title: 'Fixture item',
+        }),
+      );
+      await expect(
+        page.getByRole('link', { name: 'Fixture item' }),
+      ).toBeVisible();
       await page.getByRole('button', { name: 'Remove Fixture item' }).click();
-      await expect(page.getByRole('link', { name: 'Fixture item' })).toHaveCount(0);
+      await expect(
+        page.getByRole('link', { name: 'Fixture item' }),
+      ).toHaveCount(0);
     }
   } finally {
     await context.close();
