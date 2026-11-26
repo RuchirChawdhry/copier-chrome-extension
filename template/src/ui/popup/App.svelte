@@ -88,7 +88,7 @@
     {#if features.sidebar}
       <Button onclick={openSidebar} disabled={windowId === null}>
         Open sidebar
-      </button>
+      </Button>
     {/if}
     {#if features.settings}
       <Button
@@ -99,7 +99,7 @@
         }}
       >
         Settings
-      </button>
+      </Button>
     {/if}
   </div>
   {#if error}<StatePanel kind="error" message={error} retry={!tabReady ? loadTab : undefined} />{/if}
