@@ -37,6 +37,15 @@ jobs:
           pnpm verify:build
           pnpm run doctor
           node -e 'const r=require("./reports/doctor.json"); if(r.checks.some(c=>c.name==="Git hooks"&&c.status!=="pass"))process.exit(1)'
+      - name: Verify staged formatting hook
+        working-directory: generated
+        run: |
+          git config user.name 'Template validation'
+          git config user.email 'test@example.invalid'
+          printf 'export const fixture={test:true}\n' > src/core/hook-fixture.ts
+          git add src/core/hook-fixture.ts
+          env -u CI git commit -m fixture
+          git show HEAD:src/core/hook-fixture.ts | grep -F 'export const fixture = { test: true };'
       - name: Install Linux browser libraries
         if: runner.os == 'Linux'
         working-directory: generated
@@ -54,6 +63,20 @@ jobs:
         if: matrix.example == 'false'
         working-directory: generated
         run: node ../tests/validate_custom_config.mjs
+      - name: Verify failure diagnostics and doctor exit status
+        if: runner.os == 'Linux' && matrix.example == 'false'
+        working-directory: generated
+        run: node ../tests/validate_diagnostics.mjs
+      - name: Verify all optional capabilities with real Copier generation
+        if: runner.os == 'Linux' && matrix.example == 'true'
+        run: |
+          copier copy --defaults --vcs-ref=HEAD -d include_example=true -d include_keyboard_shortcuts=true -d include_toolbar_badge=true -d include_optional_permissions=true -d include_content_script=true . "$RUNNER_TEMP/all-capabilities"
+          cd "$RUNNER_TEMP/all-capabilities"
+          pnpm install --frozen-lockfile
+          pnpm check
+          pnpm build
+          pnpm verify:build
+          pnpm exec playwright test
       - name: Upload diagnostics
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
