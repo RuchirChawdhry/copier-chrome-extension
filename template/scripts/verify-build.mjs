@@ -20,6 +20,12 @@ assert(Boolean(manifest.options_ui?.page) === features.settings, 'settings featu
 assert(manifest.permissions.includes('contextMenus') === (features.pageContextMenu || features.toolbarContextMenu), 'context menu permission mismatch');
 assert(manifest.permissions.includes('sidePanel') === features.sidebar, 'side panel permission mismatch');
 await assertFile(manifest.background.service_worker);
+for (const size of [16, 32, 48, 128]) {
+  const icon = await readFile(resolve(dist, manifest.icons[size]));
+  assert(icon.readUInt32BE(16) === size && icon.readUInt32BE(20) === size, 'icon dimensions: ' + size);
+}
+const worker = await readFile(resolve(dist, manifest.background.service_worker), 'utf8');
+assert(!worker.includes('ws://127.0.0.1:'), 'development reload client leaked into release build');
 
 const htmlFiles = [
   ...(features.popup ? [manifest.action.default_popup] : []),

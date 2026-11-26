@@ -1,12 +1,13 @@
-import { rm, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { rm, mkdir, readFile, writeFile, cp } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { build as viteBuild } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
-import { build as esbuild, context as esbuildContext } from 'esbuild';
+import { build as esbuild } from 'esbuild';
 
-const watch = process.argv.includes('--watch');
+const devPort = Number(process.env.EXTENSION_DEV_RELOAD_PORT ?? 0);
+const dev = devPort > 0;
 const root = process.cwd();
-const dist = resolve(root, 'dist');
+const dist = resolve(root, process.env.EXTENSION_BUILD_DIR ?? 'dist');
 const features = JSON.parse(await readFile(resolve(root, 'features.json'), 'utf8'));
 const pkg = JSON.parse(await readFile(resolve(root, 'package.json'), 'utf8'));
 
@@ -16,6 +17,7 @@ const manifest = {
   description: pkg.description,
   version: pkg.version,
   minimum_chrome_version: '116',
+  icons: { 16: 'icons/icon-16.png', 32: 'icons/icon-32.png', 48: 'icons/icon-48.png', 128: 'icons/icon-128.png' },
   permissions: [
     'storage',
     'activeTab',
@@ -24,14 +26,15 @@ const manifest = {
   ],
   background: { service_worker: 'background.js', type: 'module' },
   action: features.popup
-    ? { default_title: pkg.name, default_popup: 'popup.html' }
-    : { default_title: pkg.name },
+    ? { default_title: pkg.name, default_popup: 'popup.html', default_icon: { 16: 'icons/icon-16.png', 32: 'icons/icon-32.png' } }
+    : { default_title: pkg.name, default_icon: { 16: 'icons/icon-16.png', 32: 'icons/icon-32.png' } },
   ...(features.sidebar ? { side_panel: { default_path: 'sidebar.html' } } : {}),
   ...(features.settings ? { options_ui: { page: 'options.html', open_in_tab: true } } : {})
 };
 
 await rm(dist, { recursive: true, force: true });
 await mkdir(dist, { recursive: true });
+await cp(resolve(root, 'icons'), resolve(dist, 'icons'), { recursive: true });
 await writeFile(resolve(dist, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
 
 const entryPoints = [
@@ -51,7 +54,6 @@ for (const html of entryPoints) {
       emptyOutDir: false,
       minify: 'esbuild',
       cssCodeSplit: false,
-      ...(watch ? { watch: {} } : {}),
       rollupOptions: {
         input: resolve(root, html),
         output: {
@@ -68,18 +70,12 @@ const workerConfig = {
   entryPoints: [resolve(root, 'src/background/index.ts')],
   outfile: resolve(dist, 'background.js'),
   bundle: true,
-  minify: !watch,
+  minify: !dev,
   platform: 'browser',
   format: 'esm',
   target: 'chrome116',
-  define: { __FEATURES__: JSON.stringify(features) }
+  define: { __FEATURES__: JSON.stringify(features), __DEV_RELOAD_PORT__: JSON.stringify(devPort) }
 };
 
-if (watch) {
-  const ctx = await esbuildContext(workerConfig);
-  await ctx.watch();
-  console.log('Watching extension files. Reload the unpacked extension after changes.');
-} else {
-  await esbuild(workerConfig);
-  console.log('Built unpacked extension in dist/');
-}
+await esbuild(workerConfig);
+console.log('Built unpacked extension in ' + dist);

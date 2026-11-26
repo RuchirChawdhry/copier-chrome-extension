@@ -1,6 +1,10 @@
+import { connectDevReload } from './dev-reload';
 import { addItem, removeItem } from '../core/items';
 import { getItems, setItems } from '../core/storage';
 import type { Command, CommandResult } from '../core/messages';
+
+declare const __DEV_RELOAD_PORT__: number;
+if (__DEV_RELOAD_PORT__) connectDevReload(__DEV_RELOAD_PORT__);
 
 declare const __FEATURES__: {
   popup: boolean;
@@ -67,7 +71,7 @@ chrome.runtime.onInstalled.addListener(() => {
     void registerMenus();
 });
 
-chrome.contextMenus.onClicked.addListener((info, tab) => {
+if (__FEATURES__.pageContextMenu || __FEATURES__.toolbarContextMenu) chrome.contextMenus.onClicked.addListener((info, tab) => {
   const handlers: Record<string, () => void> = {
     'save-page': () => {
       const url = info.pageUrl ?? tab?.url;
