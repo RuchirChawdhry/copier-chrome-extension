@@ -50,6 +50,7 @@ test('configured surfaces, typed RPC, reactive storage and settings', async ({
       return {
         results,
         list: await call('items.list', null),
+        stored: await chrome.storage.local.get('example.links'),
         invalid: await call('items.add', { url: 123 }),
         unknown: await call('constructor', null),
       };
@@ -63,6 +64,7 @@ test('configured surfaces, typed RPC, reactive storage and settings', async ({
       ]),
     });
     expect(result.list.value).toHaveLength(2);
+    expect(result.stored['example.links']).toEqual(result.list.value);
     expect(result.invalid.ok).toBe(false);
     expect(result.unknown.ok).toBe(false);
     if (features.sidebar || features.popup) {
@@ -104,6 +106,9 @@ test('configured surfaces, typed RPC, reactive storage and settings', async ({
         second.evaluate(() => document.documentElement.dataset.appearance),
       )
       .toBe('dark');
+    expect(
+      await page.evaluate(() => chrome.storage.local.get('ui.theme')),
+    ).toEqual({ 'ui.theme': 'dark' });
     await page.reload();
     await expect(page.getByLabel('Preferred appearance')).toHaveValue('dark');
     await second.close();

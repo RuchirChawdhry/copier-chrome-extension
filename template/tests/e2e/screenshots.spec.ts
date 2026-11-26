@@ -41,7 +41,7 @@ test('capture each enabled surface in light and dark appearance', async ({
   await page.goto(url(surfaces[0].file));
   await page.evaluate(() =>
     chrome.storage.local.set({
-      savedItems: [
+      'example.links': [
         {
           id: 'fixture-1',
           url: 'https://example.org/',
@@ -64,7 +64,7 @@ test('capture each enabled surface in light and dark appearance', async ({
     });
     for (const theme of ['light', 'dark'] as const) {
       await page.evaluate(
-        (appearance) => chrome.storage.local.set({ appearance }),
+        (appearance) => chrome.storage.local.set({ 'ui.theme': appearance }),
         theme,
       );
       await page.goto(url(surface.file));

@@ -10,17 +10,20 @@ const enqueue = createQueue();
 
 export function saveItem(input: AddItem) {
   return enqueue(async () => {
-    const previous = await exampleStorage.get('savedItems');
+    const previous = await exampleStorage.get('example.links');
     const next = addItem(previous, input, crypto.randomUUID(), Date.now());
-    if (next !== previous) await exampleStorage.set('savedItems', next);
+    if (next !== previous) await exampleStorage.set('example.links', next);
     return next;
   });
 }
 
 export function deleteItem(input: RemoveItem) {
   return enqueue(async () => {
-    const next = removeItem(await exampleStorage.get('savedItems'), input.id);
-    await exampleStorage.set('savedItems', next);
+    const next = removeItem(
+      await exampleStorage.get('example.links'),
+      input.id,
+    );
+    await exampleStorage.set('example.links', next);
     return next;
   });
 }
@@ -41,7 +44,7 @@ export const dispatchExample = createRouter<ExampleContract>(
     ),
     'items.list': route(
       (value): value is null => value === null,
-      () => enqueue(() => exampleStorage.get('savedItems')),
+      () => enqueue(() => exampleStorage.get('example.links')),
     ),
   },
   createLogger('worker:rpc'),

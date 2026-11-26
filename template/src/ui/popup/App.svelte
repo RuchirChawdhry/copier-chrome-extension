@@ -8,8 +8,8 @@
 
   const logger = createLogger('popup');
   const items = watchStorage(
-    exampleStorage.defaultValue('savedItems'),
-    (update, fail) => exampleStorage.observe('savedItems', update, fail),
+    exampleStorage.defaultValue('example.links'),
+    (update, fail) => exampleStorage.observe('example.links', update, fail),
   );
   let tab = $state<chrome.tabs.Tab | null>(null);
   let windowId = $state<number | null>(null);
