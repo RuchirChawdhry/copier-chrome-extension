@@ -19,7 +19,10 @@ export function saveItem(input: AddItem) {
 
 export function deleteItem(input: RemoveItem) {
   return enqueue(async () => {
-    const next = removeItem(await exampleStorage.get('example.links'), input.id);
+    const next = removeItem(
+      await exampleStorage.get('example.links'),
+      input.id,
+    );
     await exampleStorage.set('example.links', next);
     return next;
   });
