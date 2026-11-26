@@ -9,7 +9,8 @@
   onMount(() => {
     void chrome.storage.local.get(APPEARANCE_KEY).then((stored) => {
       const value = stored[APPEARANCE_KEY];
-      if (value === 'system' || value === 'light' || value === 'dark') appearance = value;
+      if (value === 'system' || value === 'light' || value === 'dark')
+        appearance = value;
     });
   });
 
@@ -21,15 +22,30 @@
 
 <main data-ready="true">
   <h1>{title} · Settings</h1>
-  <p>Preferences for your extension. This page is independent from the popup and sidebar bundles.</p>
+  <p>
+    Preferences for your extension. This page is independent from the popup and
+    sidebar bundles.
+  </p>
   <section class="card">
     <label for="appearance">Preferred appearance</label>
-    <select id="appearance" bind:value={appearance} onchange={() => { status = ''; }}>
+    <select
+      id="appearance"
+      bind:value={appearance}
+      onchange={() => {
+        status = '';
+      }}
+    >
       <option value="system">Follow system</option>
       <option value="light">Light</option>
       <option value="dark">Dark</option>
     </select>
-    <div class="actions"><button type="button" class="primary" onclick={save}>Save settings</button></div>
-    {#if status}<p role="status">{status}</p>{/if}
+    <div class="actions">
+      <button type="button" class="primary" onclick={save}>
+        Save settings
+      </button>
+    </div>
+    {#if status}
+      <p role="status">{status}</p>
+    {/if}
   </section>
 </main>

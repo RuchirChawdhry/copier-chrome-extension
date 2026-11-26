@@ -12,10 +12,11 @@ Requires Node.js 22.12+ and pnpm 10. Initialize Git and install the locked depen
 pnpm dev           # Rebuild and reload the unpacked extension on changes
 pnpm build         # Build unpacked extension to dist/
 pnpm typecheck     # Svelte and TypeScript validation
-pnpm lint          # Biome
+pnpm lint          # Biome formatting, imports and lint checks
 pnpm fix           # Format, organize imports and apply safe fixes
 pnpm test          # Vitest unit tests
 pnpm test:e2e      # Playwright using bundled Chromium
+pnpm test:reload   # Real development reload test (disposable project)
 pnpm bench         # Chromium navigation-to-Svelte-mount benchmark
 pnpm verify:build # Check packaged manifest, assets, and surface flags
 pnpm package       # Cross-platform ZIP output
@@ -25,7 +26,7 @@ Visit `chrome://extensions`, enable Developer mode, then choose **Load unpacked*
 
 ## Development reload and updates
 
-Run `pnpm dev`, enable Developer mode in the browser extensions page, and load `dist/` once. Keep Developer mode enabled: recent Chromium versions can disable unpacked extensions on reload otherwise. Successful rebuilds notify the development-only service worker over a loopback WebSocket; it reloads the extension. Popups may close during reload and must be reopened. If the dev server was stopped long enough for the worker to become dormant, reload the unpacked extension once after restarting it. Playwright's command-line-loaded extension can be disabled after runtime.reload; use a manually loaded developer-mode profile to validate the complete reload cycle. Failed builds do not replace the last successful output. For parallel projects, set `EXTENSION_DEV_RELOAD_PORT` to a different port and reload each unpacked extension once after changing ports. Run `pnpm build` or `pnpm package` for production output without the reload client. Do not run production and development builds concurrently.
+Run `pnpm dev`, enable Developer mode in the browser extensions page, and load `dist/` once. Keep Developer mode enabled: recent Chromium versions can disable unpacked extensions on reload otherwise. Successful rebuilds notify the development-only service worker over a loopback WebSocket; it reloads the extension. Popups may close during reload and must be reopened. If the dev server was stopped long enough for the worker to become dormant, reload the unpacked extension once after restarting it. The automated reload test uses a disposable Chromium profile with Developer mode enabled; it does not touch your browser profile. Run it only in a disposable, freshly generated project with the sample popup enabled, and stop any existing dev server first. It temporarily edits the sample popup, restores its source, and leaves a development build in dist/. Run pnpm build afterwards if production output is needed. Failed builds do not replace the last successful output. For parallel projects, set `EXTENSION_DEV_RELOAD_PORT` to a different port and reload each unpacked extension once after changing ports. Run `pnpm build` or `pnpm package` for production output without the reload client. Do not run production and development builds concurrently.
 
 The pre-commit hook runs lint-staged and Biome only on staged supported files; it formats and organizes imports and preserves unstaged edits. Commit `.copier-answers.yml` and `pnpm-lock.yaml`. From a clean committed Git working tree, run `copier update --vcs-ref=HEAD`, review changes/conflicts, then run `pnpm install --frozen-lockfile` (regenerate the lockfile if you changed dependencies). Projects generated before answers-file support require manual migration.
 

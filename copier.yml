@@ -6,16 +6,28 @@ _answers_file: .copier-answers.yml
 project_name:
   type: str
   default: My Chromium Extension
-  help: Human-readable extension name
+  help: Human-readable extension name (1–75 characters)
+  validator: >-
+    {% if not project_name | trim or project_name | length > 75 or '\n' in project_name or '\r' in project_name %}
+    Use a single-line name of 1–75 characters.
+    {% endif %}
 
 project_slug:
   type: str
-  default: "{{ project_name | lower | replace(' ', '-') }}"
-  help: npm package name (lowercase and hyphens)
+  default: "{% set ns = namespace(slug='') %}{% for c in project_name | lower %}{% if c in 'abcdefghijklmnopqrstuvwxyz0123456789' %}{% set ns.slug = ns.slug ~ c %}{% elif ns.slug and not ns.slug.endswith('-') %}{% set ns.slug = ns.slug ~ '-' %}{% endif %}{% endfor %}{{ ns.slug.rstrip('-') or 'my-extension' }}"
+  help: npm package name (lowercase letters, digits, and single hyphens)
+  validator: >-
+    {% if not project_slug or project_slug | length > 75 or project_slug[0] == '-' or project_slug[-1] == '-' or '--' in project_slug or project_slug in ['node_modules', 'favicon.ico'] or project_slug | reject('in', 'abcdefghijklmnopqrstuvwxyz0123456789-') | list %}
+    Use 1–75 lowercase ASCII letters, digits, and single separating hyphens.
+    {% endif %}
 
 project_description:
   type: str
   default: Lightweight, responsive Chromium extension
+  validator: >-
+    {% if not project_description | trim or project_description | length > 132 or '\n' in project_description or '\r' in project_description %}
+    Use a single-line description of 1–132 characters.
+    {% endif %}
 
 include_popup:
   type: bool
