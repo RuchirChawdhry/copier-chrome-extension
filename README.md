@@ -4,6 +4,16 @@ A Copier template for low-latency Chromium extensions using Manifest V3, TypeScr
 
 Generated extensions default to a clean starter with toolbar popup, sidebar, settings and menu scaffolding. Pass `-d include_example=true` for the saved-link demonstration. All five can be enabled or disabled through Copier prompts. UI entry points are independently compiled; the background worker is not required for first UI render.
 
+## Documentation
+
+- [Starlight documentation site](https://ruchirchawdhry.github.io/copier-chrome-extension/)
+- [GitHub Wiki](https://github.com/RuchirChawdhry/copier-chrome-extension/wiki)
+- [Editable documentation source](wiki/) — both destinations share the same Markdown.
+- [Site sitemap index](https://ruchirchawdhry.github.io/copier-chrome-extension/sitemap-index.xml)
+- [Agent-readable documentation](https://ruchirchawdhry.github.io/copier-chrome-extension/llms.txt)
+
+The documentation site and wiki synchronization reuse the shared `wiki-pages.yml` and `wiki-publish.yml` workflows in ci-workflows.
+
 ## Generate
 
 Install [Copier](https://copier.readthedocs.io/) and run:

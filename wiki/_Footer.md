@@ -1,0 +1,1 @@
+Documentation source: [copier-chrome-extension](https://github.com/RuchirChawdhry/copier-chrome-extension/tree/main/wiki). Read the [Starlight site](https://ruchirchawdhry.github.io/copier-chrome-extension/) or browse the Wiki.
