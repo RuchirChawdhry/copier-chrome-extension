@@ -56,3 +56,7 @@ The clean profile does not require the sample's activeTab permission. The build 
 The verifier checks the generated manifest against the declaration, verifies packaged assets and icon dimensions, rejects remote executable assets in extension HTML and checks that the development reload client is absent. It is not a complete browser-store compliance or security validator.
 
 See [Architecture](Architecture) and [Interfaces and Menus](Interfaces-and-Menus).
+
+## Schema validation
+
+`extension.config.json` is validated at build and doctor time with Zod. Required feature flags, manifest permissions, local asset paths and content-script entries are checked before building. Validation errors identify the offending field. Custom manifest properties are retained unless they conflict with generated keys; content outputs must be unique.
