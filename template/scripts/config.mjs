@@ -1,115 +1,120 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { isAbsolute, relative, resolve } from 'node:path';
+import { z } from 'zod';
 
 export const surfaces = {
   popup: 'popup.html',
   sidebar: 'sidebar.html',
   settings: 'options.html',
 };
+const localAssetPath = z.string().min(1).refine(
+  (path) =>
+    !isAbsolute(path) &&
+    !/[:\\?#]/.test(path) &&
+    !path.split('/').includes('..') &&
+    !path.startsWith('/'),
+  { message: 'Expected a relative local asset path' },
+);
+
 export function localPath(path) {
-  assert(
-    typeof path === 'string' &&
-      path.length &&
-      !isAbsolute(path) &&
-      !/[:\\?#]/.test(path) &&
-      !path.split('/').includes('..') &&
-      !path.startsWith('/'),
-    'Expected a relative local asset path: ' + path,
-  );
-  return path;
+  return localAssetPath.parse(path);
 }
+
 export function enabledSurfaces(config) {
   return Object.entries(surfaces).filter(([name]) => config[name]);
 }
+const reservedManifestKeys = [
+  'manifest_version',
+  'name',
+  'description',
+  'version',
+  'background',
+  'action',
+  'side_panel',
+  'options_ui',
+  'icons',
+  'content_scripts',
+  'minimum_chrome_version',
+];
+
+const manifestSchema = z.looseObject({
+  permissions: z.array(z.string()),
+  host_permissions: z.array(z.string()),
+  optional_permissions: z.array(z.string()),
+  optional_host_permissions: z.array(z.string()),
+}).superRefine((manifest, ctx) => {
+  for (const key of reservedManifestKeys) {
+    if (Object.hasOwn(manifest, key)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: [key],
+        message: 'Use dedicated configuration for ' + key,
+      });
+    }
+  }
+});
+
+const contentScriptSchema = z.looseObject({
+  entry: localAssetPath,
+  output: localAssetPath.refine(
+    (path) =>
+      path.endsWith('.js') &&
+      path !== 'background.js' &&
+      !path.startsWith('assets/'),
+    { message: 'Invalid content output' },
+  ),
+  matches: z.array(z.string()).min(1, 'Content script matches required'),
+}).superRefine((script, ctx) => {
+  if (Object.hasOwn(script, 'js')) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['js'],
+      message: 'Use output for the bundled content script',
+    });
+  }
+});
+
+export const extensionConfigSchema = z.looseObject({
+  popup: z.boolean(),
+  sidebar: z.boolean(),
+  settings: z.boolean(),
+  pageContextMenu: z.boolean(),
+  toolbarContextMenu: z.boolean(),
+  keyboardShortcuts: z.boolean(),
+  toolbarBadge: z.boolean(),
+  optionalPermissions: z.boolean(),
+  contentScript: z.boolean(),
+  example: z.boolean(),
+  minimumChromeVersion: z.string().regex(/^\d+$/, 'Invalid minimum Chrome version'),
+  manifest: manifestSchema,
+  contentScripts: z.array(contentScriptSchema),
+}).superRefine((config, ctx) => {
+  if (config.contentScript !== Boolean(config.contentScripts.length)) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['contentScript'],
+      message: 'contentScript flag must match declared entries',
+    });
+  }
+  const outputs = new Set();
+  for (const [index, script] of config.contentScripts.entries()) {
+    if (outputs.has(script.output)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['contentScripts', index, 'output'],
+        message: 'Invalid or duplicate content output: ' + script.output,
+      });
+    }
+    outputs.add(script.output);
+  }
+});
+
 export async function loadConfig() {
   const config = JSON.parse(await readFile('extension.config.json', 'utf8'));
-  for (const name of [
-    ...Object.keys(surfaces),
-    'pageContextMenu',
-    'toolbarContextMenu',
-    'keyboardShortcuts',
-    'toolbarBadge',
-    'optionalPermissions',
-    'contentScript',
-    'example',
-  ])
-    assert.equal(
-      typeof config[name],
-      'boolean',
-      'Missing boolean flag: ' + name,
-    );
-  assert(
-    /^\d+$/.test(config.minimumChromeVersion),
-    'Invalid minimum Chrome version',
-  );
-  assert(
-    config.manifest &&
-      typeof config.manifest === 'object' &&
-      !Array.isArray(config.manifest),
-    'Manifest overrides must be an object',
-  );
-  for (const key of [
-    'manifest_version',
-    'name',
-    'description',
-    'version',
-    'background',
-    'action',
-    'side_panel',
-    'options_ui',
-    'icons',
-    'content_scripts',
-    'minimum_chrome_version',
-  ])
-    assert(
-      !Object.hasOwn(config.manifest, key),
-      'Use dedicated configuration for ' + key,
-    );
-  for (const key of [
-    'permissions',
-    'host_permissions',
-    'optional_permissions',
-    'optional_host_permissions',
-  ])
-    assert(
-      Array.isArray(config.manifest[key]) &&
-        config.manifest[key].every((value) => typeof value === 'string'),
-      key + ' must be a string array',
-    );
-  assert(
-    Array.isArray(config.contentScripts),
-    'contentScripts must be an array',
-  );
-  assert(
-    config.contentScript === Boolean(config.contentScripts.length),
-    'contentScript flag must match declared entries',
-  );
-  const outputs = new Set();
-  for (const script of config.contentScripts) {
-    localPath(script.entry);
-    localPath(script.output);
-    assert(
-      script.output.endsWith('.js') &&
-        script.output !== 'background.js' &&
-        !script.output.startsWith('assets/') &&
-        !outputs.has(script.output),
-      'Invalid or duplicate content output: ' + script.output,
-    );
-    outputs.add(script.output);
-    assert(
-      Array.isArray(script.matches) &&
-        script.matches.length &&
-        script.matches.every((match) => typeof match === 'string'),
-      'Content script matches required',
-    );
-    assert(
-      !Object.hasOwn(script, 'js'),
-      'Use output for the bundled content script',
-    );
-  }
-  return config;
+  return extensionConfigSchema.parse(config);
 }
+
 export function makeManifest(config, pkg) {
   const extra = config.manifest;
   return {
