@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { readFile, writeFile } from 'node:fs/promises';
+import { pathToFileURL } from 'node:url';
 
 const path = 'extension.config.json';
 const original = await readFile(path, 'utf8');
@@ -15,6 +16,30 @@ try {
   config.manifest.commands = { 'product-action': { description: 'Product action' } };
   config.contentScript = true;
   config.contentScripts = [{ entry: 'src/content/index.ts', output: 'product-content.js', matches: ['https://example.org/*'], run_at: 'document_idle' }];
+  await writeFile(path, JSON.stringify(config));
+  const { extensionConfigSchema } = await import(pathToFileURL(process.cwd() + '/scripts/config.mjs').href);
+  assert.deepEqual(extensionConfigSchema.parse(config), config);
+  const invalid = [
+    [value => { delete value.popup; }, 'popup'],
+    [value => { value.minimumChromeVersion = 116; }, 'minimumChromeVersion'],
+    [value => { value.manifest.permissions = [1]; }, 'manifest.permissions.0'],
+    [value => { value.manifest.background = {}; }, 'manifest.background'],
+    [value => { value.contentScripts[0].entry = '../escape.ts'; }, 'contentScripts.0.entry'],
+    [value => { value.contentScripts[0].output = 'background.js'; }, 'contentScripts.0.output'],
+    [value => { value.contentScripts[0].matches = []; }, 'contentScripts.0.matches'],
+    [value => { value.contentScripts[0].js = ['injected.js']; }, 'contentScripts.0.js'],
+    [value => { value.contentScripts.push({...value.contentScripts[0]}); }, 'contentScripts.1.output'],
+    [value => { value.contentScript = false; }, 'contentScript'],
+  ];
+  for (const [mutate, expectedPath] of invalid) {
+    const candidate = structuredClone(config);
+    mutate(candidate);
+    const result = extensionConfigSchema.safeParse(candidate);
+    assert.equal(result.success, false, expectedPath);
+    assert(result.error.issues.some(issue => issue.path.join('.') === expectedPath), expectedPath);
+  }
+  await writeFile(path, JSON.stringify({...config, popup: 'true'}));
+  run('build.mjs', false);
   await writeFile(path, JSON.stringify(config));
   run('build.mjs');
   run('verify-build.mjs');
